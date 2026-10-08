@@ -1,0 +1,177 @@
+@import './tokens.css';
+
+/* Minimal reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--colour-text);
+  background-color: var(--colour-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * #__nuxt is Nuxt's app root. Making it a full-height flex column lets <main> grow,
+ * so header + content + footer always fill the viewport.
+ * The skip link and route announcer are absolutely positioned, so they take no space.
+ */
+#__nuxt {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--colour-text);
+  overflow-wrap: break-word;
+}
+
+h1 {
+  font-size: var(--font-size-2xl);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+}
+
+/* Links keep their underline so they never rely on colour alone */
+a {
+  color: inherit;
+  text-underline-offset: 0.15em;
+}
+
+/* Focus — always visible for keyboard users */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Hide visually, keep available to assistive tech */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Centred page column */
+.container {
+  width: 100%;
+  max-width: var(--layout-max-width);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+/* Primary action (Search, Donate) — works on <a> and <button> */
+.button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-5);
+  color: var(--colour-primary-contrast);
+  text-decoration: none;
+  background-color: var(--colour-primary);
+  /* Transparent border keeps the button outline visible in forced-colours mode */
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.button-primary:hover {
+  text-decoration: underline;
+}
+
+/* Dark bands (footer): light text and a focus ring that stays visible on burgundy and grey */
+.surface-inverse {
+  --colour-focus-ring: var(--colour-focus-ring-inverse);
+
+  color: var(--colour-text-inverse);
+}
+
+/* Skip link — hidden until focused */
+.skip-link {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 1000;
+  padding: var(--space-2) var(--space-4);
+  color: var(--colour-primary-contrast);
+  background-color: var(--colour-primary);
+  border-radius: var(--radius-sm);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Programmatic focus target (skip link destination) shouldn't show a ring */
+main:focus {
+  outline: none;
+}
+
+/* Reduced motion guard — GSAP animations must also use gsap.matchMedia() */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,90 @@
+/*
+ * Design tokens. Single source of truth for colour, spacing and type.
+ * Palette and type come from the KWVR Brand Guidelines; layout from the Figma design.
+ *
+ * Two colour layers:
+ *   - Brand: the raw palette. Only the semantic layer below may reference it.
+ *   - Semantic: what components use (never brand tokens or raw hex values).
+ * Brand rules: grey or white for text; burgundy for accents (headers, buttons, stand-out text);
+ * cream for backgrounds only; pastel tints tell timetables apart.
+ *
+ * Contrast (WCAG 2.2 AA — 4.5:1 body text, 3:1 large text & UI):
+ *   grey on white 10.8:1, grey on cream 9.7:1, grey on burgundy-tint 8.8:1
+ *   burgundy on white 7.3:1, burgundy on cream 6.6:1, burgundy on burgundy-tint 5.9:1
+ *   white on burgundy 7.3:1, white on grey 10.8:1
+ *   black on white 21:1
+ *
+ * Breakpoints (custom properties can't be used in media queries — keep in sync manually):
+ *   --bp-sm: 40rem  (640px)
+ *   --bp-md: 48rem  (768px)
+ *   --bp-lg: 64rem  (1024px)
+ *   --bp-xl: 80rem  (1280px)
+ */
+
+:root {
+  /* Colour — brand */
+  --colour-burgundy: #a32638;
+  --colour-cream: #f4f4e9;
+  --colour-grey: #423d33;
+  --colour-white: #ffffff;
+  --colour-burgundy-tint: #f3e4e6;
+  /* Not in the brand palette — used only for the main nav links, per the Figma design */
+  --colour-black: #000000;
+
+  /* Colour — semantic */
+  --colour-primary: var(--colour-burgundy);
+  --colour-primary-contrast: var(--colour-white);
+
+  --colour-surface: var(--colour-white);
+  --colour-surface-alt: var(--colour-cream);
+  --colour-surface-alert: var(--colour-burgundy-tint);
+  --colour-surface-inverse: var(--colour-grey);
+
+  --colour-text: var(--colour-grey);
+  --colour-text-accent: var(--colour-burgundy);
+  --colour-text-inverse: var(--colour-white);
+  --colour-text-nav: var(--colour-black);
+
+  --colour-border: var(--colour-grey);
+
+  --colour-focus-ring: var(--colour-grey);
+  --colour-focus-ring-inverse: var(--colour-white);
+
+  /* Spacing — 4px scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* Typography — Gill Sans (local only): SemiBold for headers, Regular for body */
+  --font-family-base: 'Gill Sans', 'Gill Sans MT', 'Gill Sans Nova', Calibri, 'Trebuchet MS', sans-serif;
+  --font-family-mono: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  /* Gill Sans has a small x-height, so the base size is a step up from 1rem */
+  --font-size-sm: 0.9375rem;
+  --font-size-base: 1.125rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+  --font-size-2xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+
+  --line-height-tight: 1.25;
+  --line-height-base: 1.5;
+
+  /* Layout */
+  --layout-max-width: 72rem;
+  --hero-min-height: clamp(13rem, 35vw, 30rem);
+
+  /* Shape & motion */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --focus-ring-width: 3px;
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+}

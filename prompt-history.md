@@ -1,0 +1,16 @@
+# Prompt history
+
+## Session 2026-10-07
+
+1. Implement the following plan: **KWVR Timetable — Project Scaffold Plan** — scaffold Nuxt 4 + TypeScript with pnpm, VueUse, GSAP, ESLint (stylistic, no Prettier, vuejs-accessibility), plain CSS variables for the palette, unit tests only (Vitest + @nuxt/test-utils + vitest-axe), accessibility first, plus `CLAUDE.md`, `mistakes.md` and `prompt-history.md`.
+2. Reported `pnpm dev` error: `GET /` → 500 "Either manifest or precomputed data must be provided".
+
+## Session 2026-10-08
+
+1. Implement the following plan: **KWVR Timetable — Brand tokens + static layout (no icons, no animation, no functionality)** — brand palette and Gill Sans tokens from the KWVR Brand Guidelines PDF; semantic token layer; `app.config.ts` link data from kwvr.co.uk; types + temporary placeholder data + formatting utils; Site/Timetable/Station components matching the approved Figma exports (`hi-fi.png`, `hi-fi - empty state.png`, `Mobile.png`, `Mobile - empty.png`); unit + axe specs (written, not run); CLAUDE.md/log housekeeping. Planning decisions recorded in the plan: the user exports `logo.svg`, `hero-train.jpg` and `station-card.jpg` into `public/images/` (cream fallback until then); on mobile the nav links wrap below a centred logo (no hamburger yet); local font stack only, no webfont files.
+2. Reported `pnpm dev` error: `GET /` → 500 ViteError `ENOENT: no such file or directory, open 'C:\images\logo.svg' (/images/logo.svg)`.
+3. "ok that's the view when I got result, what happen with the empty state view?" — added a `/?preview=empty` switch on the index page to show the empty state.
+4. "the empty state should be the default (since we don't have still any API call) and the mock of the result should only appear after I search something. For now we can make the empty state as the default, and leave comment the 'with results' state" — removed the `?preview=empty` switch; the index page defaults to the empty state, and the placeholder-results lines are commented out.
+5. Implement the following plan: **KWVR — Figma polish: nav link colour, full-height page, mobile hamburger** — nav links black with no underline (`--colour-text-nav`, hover underline); `#__nuxt` → `main` → page → empty state flex chain so the page fills at least the viewport height (the request's `100vw` read as `100vh`); below 64rem the nav collapses into a raw Vue + CSS hamburger (centred logo, three CSS bars, `aria-expanded`/`aria-controls`, Escape returns focus, click outside closes, auto-closes at desktop width); new `SiteNav.spec.ts` (written, not run).
+6. "add the logo please" (`Downloads/LOGO.svg`) — copied to `public/images/logo.svg`, the path `SiteHeader` already uses.
+7. "I like beautiful motion design, and micro interaction on all the page... can we make a beatiful transition for the burger menu it should grow, it should tell the user the story of movement, then opening should be something like 0.3s the close 0.1s ease out on opening, (doesn't matter on close )" — GSAP timeline in `useSiteNavMenuMotion`: bars fold into a cross, panel surface grows from the toggle's corner, links cascade in (0.3s, `power3.out`); close reverses it 3× faster (0.1s); mobile + no-preference only via `gsap.matchMedia()`, instant otherwise.
