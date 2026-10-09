@@ -46,15 +46,17 @@ app/
                        # unlayered: focus styles, .container, .button-primary, .surface-inverse, reduced-motion guard
   components/          # PascalCase .vue files, auto-imported
     site/              # SiteHeader, SiteNav, SiteFooter
-    timetable/         # TimetableSearchHero, TimetableSearchForm, TimetableOriginSelect, TimetableDepartureDatePicker, TimetableDepartureTimeField, TimetableSearchFieldError, TimetableResults, TimetableResultRow, TimetableEmptyState
-    station/           # StationInfo, StationAttractions, StationAttractionCard
+    timetable/         # TimetableSearchHero, TimetableSearchForm, TimetableOriginSelect, TimetableDepartureDatePicker, TimetableDepartureTimeField, TimetableSearchFieldError, TimetableResults, TimetableResultRow, TimetableFirstUseState, TimetableLoadingState, TimetableResultsState, TimetableNoResultsState, TimetableErrorState
+    station/           # StationInfo, StationAttractions, StationAttractionCard, StationBento, StationBentoCard
   composables/         # useXxx composables, auto-imported
-  data/                # TEMPORARY static placeholder data — replace with an API composable
+  data/                # placeholderTimetable.ts: TEMPORARY placeholder data — replace with an API composable;
+                       # stationHighlights.ts: site content (station card copy + photos from kwvr.co.uk), stays
   pages/               # file-based routes
   plugins/             # gsap.client.ts
   types/               # shared TypeScript types (import with `import type … from '~/types/…'`)
   utils/               # pure helpers (formatting, parsing API data, departure prefill rules)
-public/images/         # logo.svg, hero-train-45596.webp (hero original, 1536×512), station-card.jpg (exported from Figma)
+public/images/         # logo.svg, hero-train-45596.webp (hero original, 1536×512), station-card.jpg (exported from Figma),
+                       # stations/<station-id>.webp (station card originals, 1280px wide, from kwvr.co.uk)
 test/
   setup.ts             # vitest-axe matchers
   fixtures/            # shared test data
@@ -62,6 +64,21 @@ test/
 ```
 - Component folders don't change names: Nuxt drops the repeated folder prefix (`site/SiteHeader.vue` → `<SiteHeader>`).
 - Dark bands (burgundy/grey) get `.surface-inverse` so the focus ring switches to white.
+
+## Page states
+The content area under the search box shows exactly one state, driven by `TimetableSearchState` (`app/types/timetable.ts`) through a `v-if` / `v-else-if` chain in `pages/index.vue`.
+
+| Status | Component | When | Current status |
+|---|---|---|---|
+| `first-use` | `TimetableFirstUseState` | No search yet (Figma's "empty state"): "Or catch the next train from…" + `StationBento` | Done |
+| `loading` | `TimetableLoadingState` | Search sent, waiting for the API | Shell |
+| `results` | `TimetableResultsState` | API returned services; will compose `TimetableResults` + `StationInfo` + `StationAttractions` | Shell |
+| `no-results` | `TimetableNoResultsState` | API returned nothing | Shell |
+| `error` | `TimetableErrorState` | The request failed | Shell |
+
+- First use: `StationBento` is Vue Bits' [MagicBento](https://vue-bits.dev/components/magic-bento) layout with every effect off (plain CSS, no GSAP; only the 2px hover lift is left). Each card is a stretched `<button>` inside an `<h3>`; choosing one calls the search form's exposed `searchNextTrainFromStation`, so the form shows the station, date and time searched (the next departure, by the prefill rule). Card photos sit under a scrim (`--colour-photo-scrim*`): white text only where it's at least 55% black.
+- Substates belong in their variant of the union (e.g. an error `kind`), not in extra flags.
+- The `aria-live="polite"` summary (`.results-summary`) stays rendered in every state. Its text comes from the state, and it's empty on first use.
 
 ## Scripts
 | Command | Purpose |

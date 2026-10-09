@@ -52,6 +52,14 @@
   --colour-surface-inverse: var(--colour-grey);
   /* Translucent shade laid over the hero photo, so the search card stands out */
   --colour-hero-shade: color-mix(in srgb, var(--colour-black) 35%, transparent);
+  /*
+   * Scrim under white text on photos (station cards). From 55% black up, white text stays at least
+   * 4.7:1 over any photo, even pure white, so text must sit where the scrim is at least that dark.
+   */
+  --colour-photo-scrim: color-mix(in srgb, var(--colour-black) 55%, transparent);
+  --colour-photo-scrim-strong: color-mix(in srgb, var(--colour-black) 70%, transparent);
+  /* Shadow under a lifted card on hover */
+  --colour-card-shadow: color-mix(in srgb, var(--colour-black) 20%, transparent);
 
   --colour-text: var(--colour-grey);
   --colour-text-accent: var(--colour-burgundy);
@@ -101,6 +109,8 @@
   /* Shape & motion */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
+  /* Station bento cards (MagicBento's 20px corners) */
+  --radius-lg: 1.25rem;
   --focus-ring-width: 2px;
   --duration-fast: 150ms;
   --duration-base: 250ms;

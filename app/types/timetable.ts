@@ -40,9 +40,29 @@ export interface TrainService {
   hasServiceAlert: boolean
 }
 
+/** What the content area under the search box shows; one component per status */
+export type TimetableSearchState =
+  | { status: 'first-use' }
+  | { status: 'loading', criteria: TimetableSearchCriteria }
+  | { status: 'results', criteria: TimetableSearchCriteria, services: TrainService[] }
+  | { status: 'no-results', criteria: TimetableSearchCriteria }
+  | { status: 'error', criteria: TimetableSearchCriteria }
+
 export interface StationDetails {
   station: Station
   description: string
+}
+
+/** A station card on the first-use state: a photo and a short line about the station, from kwvr.co.uk */
+export interface StationHighlight {
+  station: Station
+  /** Short tag at the top of the card, e.g. "Northern terminus" */
+  label: string
+  description: string
+  /** WebP original in public/images/stations; @nuxt/image serves resized copies */
+  imageSrc: string
+  imageWidth: number
+  imageHeight: number
 }
 
 export interface StationAttraction {

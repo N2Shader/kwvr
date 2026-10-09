@@ -1,29 +1,30 @@
 <script setup lang="ts">
-import type { TrainService } from '~/types/timetable'
-import {
-  placeholderAttractions,
-  placeholderSearchCriteria,
-  placeholderSearchDefaults,
-  // placeholderServices,
-  placeholderStationDetails,
-  placeholderStations,
-} from '~/data/placeholderTimetable'
+import type { Station, TimetableSearchState } from '~/types/timetable'
+import { placeholderSearchDefaults, placeholderStations } from '~/data/placeholderTimetable'
+import { stationHighlights } from '~/data/stationHighlights'
 
 useHead({ title: 'Find train times — Keighley & Worth Valley Railway' })
 
-// No API or search yet, so the page starts on the empty state.
-// "With results" state (placeholder data): uncomment the `placeholderServices` import above
-// and the line below, then remove the empty array.
-// const services = placeholderServices
-const services: TrainService[] = []
-const hasServices = services.length > 0
-const resultsSummary = formatResultsSummary(services.length)
+// The state lives here until the API search composable takes it over
+const searchState = ref<TimetableSearchState>({ status: 'first-use' })
+
+const resultsSummary = computed(() => {
+  const state = searchState.value
+  if (state.status === 'results') return formatResultsSummary(state.services.length)
+  if (state.status === 'no-results') return formatResultsSummary(0)
+  // Loading and error announcements come with those states' designs
+  return ''
+})
+
+// A station card searches through the form, so the form shows the station, date and time searched
+const timetableSearchForm = useTemplateRef<{ searchNextTrainFromStation: (station: Station) => void }>('timetableSearchForm')
 </script>
 
 <template>
   <div class="timetable-page">
     <TimetableSearchHero>
       <TimetableSearchForm
+        ref="timetableSearchForm"
         :stations="placeholderStations"
         :default-criteria="placeholderSearchDefaults"
       />
@@ -31,29 +32,26 @@ const resultsSummary = formatResultsSummary(services.length)
 
     <!-- Always rendered, so screen readers hear the count when results change -->
     <p
-      class="visually-hidden"
+      class="results-summary visually-hidden"
       aria-live="polite"
     >
       {{ resultsSummary }}
     </p>
 
-    <template v-if="hasServices">
-      <TimetableResults
-        :services="services"
-        :search-criteria="placeholderSearchCriteria"
-      />
-      <StationInfo :details="placeholderStationDetails" />
-      <StationAttractions
-        :station-name="placeholderStationDetails.station.name"
-        :attractions="placeholderAttractions"
-      />
-    </template>
-    <TimetableEmptyState v-else />
+    <TimetableFirstUseState
+      v-if="searchState.status === 'first-use'"
+      :station-highlights="stationHighlights"
+      @select-station="timetableSearchForm?.searchNextTrainFromStation($event)"
+    />
+    <TimetableLoadingState v-else-if="searchState.status === 'loading'" />
+    <TimetableResultsState v-else-if="searchState.status === 'results'" />
+    <TimetableNoResultsState v-else-if="searchState.status === 'no-results'" />
+    <TimetableErrorState v-else />
   </div>
 </template>
 
 <style scoped>
-/* Passes the remaining height down, so the empty state can fill it */
+/* Passes the remaining height down, so the first-use state can fill it */
 .timetable-page {
   flex: 1;
   display: flex;

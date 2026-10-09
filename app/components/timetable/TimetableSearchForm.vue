@@ -30,13 +30,15 @@ const {
 // The date and time prefill read the user's own clock, so they're set on the client only
 // (on the server they would use the server's clock and time zone, and mismatch on hydration).
 // The prefill and the time limit read the same instant.
-onMounted(() => {
+const applyDepartureDefaults = () => {
   refreshDepartureClock()
   const departureDefaults = getDepartureDefaultsByClock(departureClock.value)
   earliestDepartingDate.value = departureDefaults.earliestDate
   selectedDepartingDate.value = departureDefaults.date
   selectedDepartingTime.value = departureDefaults.time
-})
+}
+
+onMounted(applyDepartureDefaults)
 
 // Errors show only once a search has been tried; after that they update as each field is fixed
 const hasTriedSearch = ref(false)
@@ -86,6 +88,16 @@ const submitSearch = async () => {
     departingTime: selectedDepartingTime.value?.toString(),
   })
 }
+
+// A station card under the search box: fill in that station, put the date and time back to the next
+// departure (the same rule as the prefill), and search, so the form shows what was searched
+const searchNextTrainFromStation = (station: Station) => {
+  selectedOriginId.value = station.id
+  applyDepartureDefaults()
+  searchForm.value?.requestSubmit()
+}
+
+defineExpose({ searchNextTrainFromStation })
 </script>
 
 <template>
