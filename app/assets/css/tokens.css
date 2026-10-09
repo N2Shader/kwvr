@@ -2,16 +2,19 @@
  * Design tokens. Single source of truth for colour, spacing and type.
  * Palette and type come from the KWVR Brand Guidelines; layout from the Figma design.
  *
- * Two colour layers:
+ * Three colour layers:
  *   - Brand: the raw palette. Only the semantic layer below may reference it.
  *   - Semantic: what components use (never brand tokens or raw hex values).
+ *   - Nuxt UI bridge: maps Nuxt UI's --ui-* theme variables onto semantic tokens only.
  * Brand rules: grey or white for text; burgundy for accents (headers, buttons, stand-out text);
  * cream for backgrounds only; pastel tints tell timetables apart.
  *
  * Contrast (WCAG 2.2 AA — 4.5:1 body text, 3:1 large text & UI):
  *   grey on white 10.8:1, grey on cream 9.7:1, grey on burgundy-tint 8.8:1
  *   burgundy on white 7.3:1, burgundy on cream 6.6:1, burgundy on burgundy-tint 5.9:1
- *   white on burgundy 7.3:1, white on grey 10.8:1
+ *   white on burgundy 7.3:1, white on burgundy-dark 9.3:1, white on grey 10.8:1
+ *   grey-soft on white 3.4:1, grey-soft on cream 3.1:1 (UI boundaries and disabled text only —
+ *   WCAG exempts disabled controls; never use it for readable text)
  *   black on white 21:1
  *
  * Breakpoints (custom properties can't be used in media queries — keep in sync manually):
@@ -28,26 +31,34 @@
   --colour-grey: #423d33;
   --colour-white: #ffffff;
   --colour-burgundy-tint: #f3e4e6;
-  /* Not in the brand palette — used only for the main nav links, per the Figma design */
+  /* Derived from the brand burgundy (82% burgundy mixed with black) — hover shade for primary buttons */
+  --colour-burgundy-dark: #861f2e;
+  /* Derived from the brand grey (60% grey mixed with white) — a softer edge for input borders */
+  --colour-grey-soft: #8e8b85;
+  /* Not in the brand palette — used only for the main nav links (per the Figma design) and the hero shade */
   --colour-black: #000000;
 
   /* Colour — semantic */
   --colour-primary: var(--colour-burgundy);
   --colour-primary-contrast: var(--colour-white);
+  --colour-primary-hover: var(--colour-burgundy-dark);
 
   --colour-surface: var(--colour-white);
   --colour-surface-alt: var(--colour-cream);
   --colour-surface-alert: var(--colour-burgundy-tint);
   --colour-surface-inverse: var(--colour-grey);
+  /* Translucent shade laid over the hero photo, so the search card stands out */
+  --colour-hero-shade: color-mix(in srgb, var(--colour-black) 35%, transparent);
 
   --colour-text: var(--colour-grey);
   --colour-text-accent: var(--colour-burgundy);
   --colour-text-inverse: var(--colour-white);
   --colour-text-nav: var(--colour-black);
+  --colour-text-disabled: var(--colour-grey-soft);
 
-  --colour-border: var(--colour-grey);
+  --colour-border: var(--colour-grey-soft);
 
-  --colour-focus-ring: var(--colour-grey);
+  --colour-focus-ring: var(--colour-burgundy);
   --colour-focus-ring-inverse: var(--colour-white);
 
   /* Spacing — 4px scale */
@@ -84,7 +95,34 @@
   /* Shape & motion */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
-  --focus-ring-width: 3px;
+  --focus-ring-width: 2px;
   --duration-fast: 150ms;
   --duration-base: 250ms;
+
+  /*
+   * Nuxt UI bridge — unlayered, so it beats Nuxt UI's @layer theme defaults.
+   * Every text shade is grey, so muted text never drops below 4.5:1.
+   */
+  --ui-primary: var(--colour-primary);
+
+  --ui-text: var(--colour-text);
+  --ui-text-highlighted: var(--colour-text);
+  --ui-text-toned: var(--colour-text);
+  --ui-text-muted: var(--colour-text);
+  --ui-text-dimmed: var(--colour-text);
+  --ui-text-inverted: var(--colour-text-inverse);
+
+  --ui-bg: var(--colour-surface);
+  /* Cream for option hover and highlight */
+  --ui-bg-muted: var(--colour-surface-alt);
+  --ui-bg-elevated: var(--colour-surface-alt);
+  --ui-bg-accented: var(--colour-surface-alt);
+  --ui-bg-inverted: var(--colour-surface-inverse);
+
+  --ui-border: var(--colour-border);
+  --ui-border-muted: var(--colour-border);
+  --ui-border-accented: var(--colour-border);
+  --ui-border-inverted: var(--colour-text-inverse);
+
+  --ui-radius: var(--radius-sm);
 }

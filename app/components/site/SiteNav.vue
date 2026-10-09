@@ -94,10 +94,11 @@ watch(isDesktopViewport, (isDesktop) => {
           >{{ navLink.label }}</a>
         </li>
       </ul>
-      <a
-        :href="donateLink.href"
+      <UButton
+        :to="donateLink.href"
+        :label="donateLink.label"
         class="button-primary site-nav-menu-item"
-      >{{ donateLink.label }}</a>
+      />
     </div>
   </nav>
 </template>
@@ -115,6 +116,11 @@ watch(isDesktopViewport, (isDesktop) => {
   border: 0;
   border-radius: var(--radius-sm);
   cursor: pointer;
+}
+
+/* Cream wash on hover, matching the Select's option hover */
+.site-nav-toggle:hover {
+  background-color: var(--colour-surface-alt);
 }
 
 /* Bars are separate spans so each one can move on its own */

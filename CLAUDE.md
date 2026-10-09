@@ -17,38 +17,43 @@
 - Pastel shades tell timetables apart (e.g. the tint marks alert rows).
 - Font: Gill Sans, from a local font stack only (no webfont files). SemiBold for headers, Regular for body.
 - Left-align long text; centre only short snippets.
-- **No icons yet** — they're still being confirmed. Use text labels (e.g. "Service alert", social links as words) until the icon set is approved.
+- **No icons yet** — they're still being confirmed. Use text labels (e.g. "Service alert") until the icon set is approved. Exceptions: built-in control affordances (the Select's chevron and ✓) and the footer social links, which use brand logos from Simple Icons (`@iconify-json/simple-icons`, CC0, bundled locally) with a visually hidden text name.
+- Footer legal links have no underline (they sit in a labelled `<nav>`); they underline on hover like the main nav.
 
 ## Stack
 - Nuxt 4 (`app/` directory layout), Vue 3, TypeScript (strict)
 - pnpm (`packageManager` pinned in `package.json`) — never use npm/yarn
 - VueUse (`@vueuse/nuxt`, composables auto-imported)
 - GSAP (client-only plugin, `useNuxtApp().$gsap`)
-- Plain CSS with custom properties — no Tailwind, no preprocessors
+- Plain CSS with custom properties — no preprocessors, no utility classes in our code
+- Nuxt UI v4 (`@nuxt/ui`) for interactive components (`USelect`, `UButton`, …). Tailwind CSS v4 is installed only as Nuxt UI's styling engine. `ui.fonts` and `ui.colorMode` are off (local fonts only, no dark mode). Icons come from locally bundled sets only (`@iconify-json/lucide` for control icons, `@iconify-json/simple-icons` for social logos), with `icon.fallbackToApi: false`, so nothing is fetched from the Iconify API
 - ESLint via `@nuxt/eslint` with stylistic formatting (no Prettier) + `eslint-plugin-vuejs-accessibility`
 - Vitest + `@nuxt/test-utils` + happy-dom + `vitest-axe`
+- `@nuxt/image` for responsive images: `useImage()` builds resized/cropped WebP URLs (ipx locally). Keep srcset widths at or below the original's width, and keep originals in WebP
+- `@internationalized/date` (Nuxt UI's optional peer) for `UCalendar`/`UInputTime` values (`CalendarDate`, `Time`)
 - TypeScript is pinned to `~6.0` because typescript-eslint doesn't support TS 7 yet
 - `nuxt.config.ts` has a `nitro.externals.inline` workaround for a Nuxt 4.6.0 Windows SSR bug ([nuxt#36467](https://github.com/nuxt/nuxt/issues/36467)) — remove once a Nitro release includes nitrojs/nitro#4732
 
 ## Folder conventions
 ```
 app/
-  app.vue              # skip link + <SiteHeader /> + <main id="main"> + <SiteFooter />
+  app.vue              # <UApp :toaster="null"> wrapping skip link + <SiteHeader /> + <main id="main"> + <SiteFooter />
   app.config.ts        # site link data (nav, donate, legal, social, contact, organisation) — read via useAppConfig()
   assets/css/
-    tokens.css         # design tokens: brand layer → semantic layer (components use semantic only)
-    main.css           # reset, focus styles, .container, .button-primary, .surface-inverse, reduced-motion guard
+    tokens.css         # design tokens: brand → semantic (components use semantic only) → Nuxt UI bridge (--ui-* mapped to semantic)
+    main.css           # @import tailwindcss → @nuxt/ui → tokens.css; reset in @layer base (after preflight);
+                       # unlayered: focus styles, .container, .button-primary, .surface-inverse, reduced-motion guard
   components/          # PascalCase .vue files, auto-imported
     site/              # SiteHeader, SiteNav, SiteFooter
-    timetable/         # TimetableSearchHero, TimetableSearchForm, TimetableResults, TimetableResultRow, TimetableEmptyState
+    timetable/         # TimetableSearchHero, TimetableSearchForm, TimetableDepartureDatePicker, TimetableResults, TimetableResultRow, TimetableEmptyState
     station/           # StationInfo, StationAttractions, StationAttractionCard
   composables/         # useXxx composables, auto-imported
   data/                # TEMPORARY static placeholder data — replace with an API composable
   pages/               # file-based routes
   plugins/             # gsap.client.ts
   types/               # shared TypeScript types (import with `import type … from '~/types/…'`)
-  utils/               # pure helpers (formatting, parsing API data)
-public/images/         # logo.svg, hero-train.jpg, station-card.jpg (exported from Figma)
+  utils/               # pure helpers (formatting, parsing API data, departure prefill rules)
+public/images/         # logo.svg, hero-train-45596.webp (hero original, 1536×512), station-card.jpg (exported from Figma)
 test/
   setup.ts             # vitest-axe matchers
   fixtures/            # shared test data
@@ -73,6 +78,8 @@ test/
 - Split any file over 250 lines (`max-lines` warns).
 - No `any`; use `import type` for type-only imports.
 - Style with CSS custom properties from `tokens.css` — never hard-code colours in components.
+- Plain CSS; no utility classes in our code. Theme Nuxt UI via `--ui-*` in tokens.css; restyle a Nuxt UI component by giving it an unlayered class (via `class` or `:ui` slot hooks). Unlayered CSS beats Nuxt UI's layered utilities whatever the specificity.
+- Scoped styles don't reach inside multi-root Nuxt UI components (e.g. `USelect`, `UButton`): target their classes with `:deep()` under a scoped ancestor, and use a non-scoped `<style>` for portalled content (menus).
 - No `console.log` (only `console.warn` / `console.error`).
 
 ## Accessibility rules (WCAG 2.2 AA)
@@ -84,6 +91,7 @@ test/
 - Touch targets ≥ 24×24 CSS px (WCAG 2.2 2.5.8).
 - Use `.visually-hidden` for screen-reader-only text.
 - `lang="en-GB"` is set globally; times/dates use `<time datetime="…">`.
+- Anything read from the user's clock (e.g. the search form's date/time prefill) is set in `onMounted`, never during SSR — the server's clock and time zone differ and would break hydration.
 
 ## Motion
 - All GSAP animations must honour `prefers-reduced-motion`: wrap them in `$gsap.matchMedia()` (or check VueUse's `usePreferredReducedMotion()`), and provide a no-motion path.

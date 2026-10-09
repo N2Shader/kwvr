@@ -1,91 +1,138 @@
+/*
+ * Layer strategy: Tailwind is only Nuxt UI's styling engine (we write no utility classes).
+ *   - Tailwind preflight + our element reset live in @layer base; Nuxt UI classes in @layer utilities.
+ *   - Everything else in this file (and all component CSS) is unlayered. Unlayered CSS beats any
+ *     layered CSS regardless of specificity, so our classes restyle Nuxt UI components and the
+ *     :focus-visible ring below replaces Nuxt UI's.
+ *   - tokens.css comes after @nuxt/ui so our --ui-* bridge overrides its theme variables.
+ */
+@import 'tailwindcss';
+@import '@nuxt/ui';
 @import './tokens.css';
 
-/* Minimal reset */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* Minimal reset — in the base layer so it overrides preflight but never Nuxt UI utilities */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-* {
-  margin: 0;
-}
+  * {
+    margin: 0;
+  }
 
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Preflight hides the tap highlight on mobile; keep the browser default */
+    -webkit-tap-highlight-color: revert;
+  }
 
-body {
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-base);
-  color: var(--colour-text);
-  background-color: var(--colour-surface);
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--colour-text);
+    background-color: var(--colour-surface);
+    -webkit-font-smoothing: antialiased;
+    /* Nuxt UI's body rule adds grayscale smoothing in Firefox on macOS; keep the default */
+    -moz-osx-font-smoothing: auto;
+  }
 
-/*
- * #__nuxt is Nuxt's app root. Making it a full-height flex column lets <main> grow,
- * so header + content + footer always fill the viewport.
- * The skip link and route announcer are absolutely positioned, so they take no space.
- */
-#__nuxt {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
+  /*
+   * #__nuxt is Nuxt's app root. Making it a full-height flex column lets <main> grow,
+   * so header + content + footer always fill the viewport.
+   * The skip link and route announcer are absolutely positioned, so they take no space.
+   */
+  #__nuxt {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
 
-img,
-picture,
-svg,
-video {
-  display: block;
-  max-width: 100%;
-}
+  img,
+  picture,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+  }
 
-img {
-  height: auto;
-}
+  img {
+    height: auto;
+  }
 
-input,
-button,
-select,
-textarea {
-  font: inherit;
-}
+  input,
+  button,
+  select,
+  textarea {
+    font: inherit;
+  }
 
-table {
-  border-collapse: collapse;
-}
+  /* Preflight restyles the native date/time input's internals; keep the browser defaults */
+  ::-webkit-date-and-time-value {
+    min-height: revert;
+    text-align: revert;
+  }
 
-h1,
-h2,
-h3,
-h4 {
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-tight);
-  color: var(--colour-text);
-  overflow-wrap: break-word;
-}
+  ::-webkit-datetime-edit {
+    display: revert;
+  }
 
-h1 {
-  font-size: var(--font-size-2xl);
-}
+  ::-webkit-datetime-edit-fields-wrapper {
+    padding: revert;
+  }
 
-h2 {
-  font-size: var(--font-size-xl);
-}
+  ::-webkit-datetime-edit,
+  ::-webkit-datetime-edit-year-field,
+  ::-webkit-datetime-edit-month-field,
+  ::-webkit-datetime-edit-day-field,
+  ::-webkit-datetime-edit-hour-field,
+  ::-webkit-datetime-edit-minute-field,
+  ::-webkit-datetime-edit-second-field,
+  ::-webkit-datetime-edit-millisecond-field,
+  ::-webkit-datetime-edit-meridiem-field {
+    padding-block: revert;
+  }
 
-h3 {
-  font-size: var(--font-size-lg);
-}
+  ::-webkit-calendar-picker-indicator {
+    line-height: revert;
+  }
 
-/* Links keep their underline so they never rely on colour alone */
-a {
-  color: inherit;
-  text-underline-offset: 0.15em;
+  table {
+    border-collapse: collapse;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    color: var(--colour-text);
+    overflow-wrap: break-word;
+  }
+
+  h1 {
+    font-size: var(--font-size-2xl);
+  }
+
+  h2 {
+    font-size: var(--font-size-xl);
+  }
+
+  h3 {
+    font-size: var(--font-size-lg);
+  }
+
+  /* Links keep their underline so they never rely on colour alone (preflight removes it) */
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
 }
 
 /* Focus — always visible for keyboard users */
@@ -115,13 +162,17 @@ a {
   padding-inline: var(--space-4);
 }
 
-/* Primary action (Search, Donate) — works on <a> and <button> */
+/*
+ * Primary action (Search, Donate) — works on <a> and <button>, and is applied to UButton.
+ * `font: inherit` cancels UButton's own text size and weight.
+ */
 .button-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 2.75rem;
   padding: var(--space-2) var(--space-5);
+  font: inherit;
   color: var(--colour-primary-contrast);
   text-decoration: none;
   background-color: var(--colour-primary);
@@ -131,8 +182,13 @@ a {
   cursor: pointer;
 }
 
+/*
+ * Hover darkens the fill; the shape already marks it as a button, so no underline.
+ * No colour transition — motion is limited to transforms and opacity.
+ */
 .button-primary:hover {
-  text-decoration: underline;
+  text-decoration: none;
+  background-color: var(--colour-primary-hover);
 }
 
 /* Dark bands (footer): light text and a focus ring that stays visible on burgundy and grey */
@@ -164,7 +220,7 @@ main:focus {
   outline: none;
 }
 
-/* Reduced motion guard — GSAP animations must also use gsap.matchMedia() */
+/* Reduced motion guard (also tames Nuxt UI's menu animations) — GSAP must use gsap.matchMedia() */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

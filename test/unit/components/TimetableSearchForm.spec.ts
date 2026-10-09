@@ -1,3 +1,4 @@
+import { nextTick } from 'vue'
 import { describe, expect, it } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { axe } from 'vitest-axe'
@@ -22,26 +23,74 @@ describe('TimetableSearchForm', () => {
     const wrapper = await mountSearchForm()
     const fieldLabels = wrapper.findAll('label')
 
-    expect(fieldLabels.map(fieldLabel => fieldLabel.find('.search-field-label').text())).toEqual(['Departing from', 'Date and time'])
+    expect(fieldLabels.map(fieldLabel => fieldLabel.find('.search-field-label').text())).toEqual(['Departing from', 'Date', 'Time'])
     fieldLabels.forEach((fieldLabel) => {
-      const labelledControl = fieldLabel.find('select, input')
-      expect(fieldLabel.attributes('for')).toBe(labelledControl.attributes('id'))
+      // Origin → the combobox trigger, date → the calendar button, time → the hidden input that forwards focus
+      const labelledControl = fieldLabel.find(`[id="${fieldLabel.attributes('for')}"]`)
+      expect(labelledControl.exists()).toBe(true)
     })
   })
 
-  it('lists every station and preselects the default origin', async () => {
+  it('names the origin combobox with its visible label', async () => {
     const wrapper = await mountSearchForm()
-    const originSelect = wrapper.find('select')
+    const originLabelText = wrapper.findAll('.search-field-label').find(fieldLabelText => fieldLabelText.text() === 'Departing from')
+    const originCombobox = wrapper.find('[role="combobox"]')
 
-    expect(originSelect.findAll('option').map(stationOption => stationOption.text())).toEqual(['Keighley', 'Haworth', 'Oxenhope'])
-    expect((originSelect.element as HTMLSelectElement).value).toBe('haworth')
+    expect(originCombobox.attributes('aria-labelledby')).toBe(originLabelText?.attributes('id'))
   })
 
-  it('prefills the date and time with the default departure', async () => {
-    const wrapper = await mountSearchForm()
-    const departingAfterInput = wrapper.find('input[type="datetime-local"]')
+  it('lists every station and preselects the default origin', async () => {
+    // Attached to the document because the options are portalled to <body>
+    const wrapper = await mountSuspended(TimetableSearchForm, {
+      props: { stations: stationsFixture, defaultCriteria: searchCriteriaFixture },
+      attachTo: document.body,
+    })
+    const originCombobox = wrapper.find('[role="combobox"]')
 
-    expect((departingAfterInput.element as HTMLInputElement).value).toBe('2026-04-24T12:00')
+    expect(originCombobox.text()).toBe('Haworth')
+
+    await originCombobox.trigger('keydown', { key: 'Enter' })
+    await nextTick()
+
+    const stationOptions = Array.from(document.body.querySelectorAll('[role="option"]'))
+    expect(stationOptions.map(stationOption => stationOption.textContent?.trim())).toEqual(['Keighley', 'Haworth', 'Oxenhope'])
+
+    wrapper.unmount()
+  })
+
+  it('starts on "Select a station" without adding it as an option when there is no default origin', async () => {
+    const wrapper = await mountSuspended(TimetableSearchForm, {
+      props: { stations: stationsFixture, defaultCriteria: {} },
+      attachTo: document.body,
+    })
+    const originCombobox = wrapper.find('[role="combobox"]')
+
+    expect(originCombobox.text()).toBe('Select a station')
+
+    await originCombobox.trigger('keydown', { key: 'Enter' })
+    await nextTick()
+
+    const stationOptions = Array.from(document.body.querySelectorAll('[role="option"]'))
+    expect(stationOptions.map(stationOption => stationOption.textContent?.trim())).toEqual(['Keighley', 'Haworth', 'Oxenhope'])
+
+    wrapper.unmount()
+  })
+
+  it('marks the origin combobox as expanded while the menu is open (the chevron flips on this)', async () => {
+    const wrapper = await mountSuspended(TimetableSearchForm, {
+      props: { stations: stationsFixture, defaultCriteria: searchCriteriaFixture },
+      attachTo: document.body,
+    })
+    const originCombobox = wrapper.find('[role="combobox"]')
+
+    expect(originCombobox.attributes('aria-expanded')).toBe('false')
+
+    await originCombobox.trigger('keydown', { key: 'Enter' })
+    await nextTick()
+
+    expect(originCombobox.attributes('aria-expanded')).toBe('true')
+
+    wrapper.unmount()
   })
 
   it('does not navigate away on submit', async () => {

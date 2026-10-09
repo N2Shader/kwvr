@@ -29,11 +29,15 @@ describe('SiteFooter', () => {
     expect(legalLinkLabels).toEqual(['Terms & Conditions', 'Privacy Policy'])
   })
 
-  it('renders the social links as text', async () => {
+  it('renders the social links as logos named by visually hidden text', async () => {
     const wrapper = await mountSuspended(SiteFooter)
-    const socialLinkLabels = wrapper.findAll('ul[aria-label="Social media"] a').map(socialLink => socialLink.text())
+    const socialLinks = wrapper.findAll('ul[aria-label="Social media"] a')
 
-    expect(socialLinkLabels).toEqual(['Facebook', 'Twitter', 'Instagram', 'YouTube', 'TikTok'])
+    expect(socialLinks.map(socialLink => socialLink.find('.visually-hidden').text()))
+      .toEqual(['Facebook', 'X (formerly Twitter)', 'Instagram', 'YouTube', 'TikTok'])
+    socialLinks.forEach((socialLink) => {
+      expect(socialLink.find('.social-icon').attributes('aria-hidden')).toBe('true')
+    })
   })
 
   it('uses the inverse surface on both bands so focus stays visible', async () => {

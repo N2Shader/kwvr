@@ -9,6 +9,12 @@ export interface TimetableSearchCriteria {
   departingAfter: string
 }
 
+/**
+ * Form prefill. Origin is optional so the form can start on "Select a station".
+ * The date and time aren't here: they come from the user's clock (see `getDepartureDefaultsByClock`).
+ */
+export type TimetableSearchDefaults = Partial<Pick<TimetableSearchCriteria, 'origin'>>
+
 export interface TrainService {
   id: string
   origin: Station

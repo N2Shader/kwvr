@@ -3,6 +3,7 @@ import type { TrainService } from '~/types/timetable'
 import {
   placeholderAttractions,
   placeholderSearchCriteria,
+  placeholderSearchDefaults,
   // placeholderServices,
   placeholderStationDetails,
   placeholderStations,
@@ -24,7 +25,7 @@ const resultsSummary = formatResultsSummary(services.length)
     <TimetableSearchHero>
       <TimetableSearchForm
         :stations="placeholderStations"
-        :default-criteria="placeholderSearchCriteria"
+        :default-criteria="placeholderSearchDefaults"
       />
     </TimetableSearchHero>
 

@@ -1,4 +1,4 @@
-import type { Station, StationAttraction, StationDetails, TimetableSearchCriteria, TrainService } from '~/types/timetable'
+import type { Station, StationAttraction, StationDetails, TimetableSearchCriteria, TimetableSearchDefaults, TrainService } from '~/types/timetable'
 
 // Temporary static data mirroring the Figma design. Replace with an API composable.
 
@@ -17,6 +17,9 @@ export const placeholderSearchCriteria: TimetableSearchCriteria = {
   origin: haworth,
   departingAfter: '2026-04-24T12:00',
 }
+
+// No origin, so the form starts on "Select a station" (the date and time come from the user's clock)
+export const placeholderSearchDefaults: TimetableSearchDefaults = {}
 
 export const placeholderServices: TrainService[] = [
   { id: 'service-1220', origin: haworth, destination: keighley, departsAt: '2026-04-24T12:20', arrivesAt: '2026-04-24T13:00', stopCount: 4, hasServiceAlert: false },

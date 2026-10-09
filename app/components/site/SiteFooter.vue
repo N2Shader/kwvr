@@ -30,14 +30,24 @@ const { contact, legalLinks, organisation, socialLinks } = useAppConfig()
           </ul>
         </nav>
         <ul
-          class="footer-link-list"
+          class="footer-link-list social-list"
           aria-label="Social media"
         >
           <li
             v-for="socialLink in socialLinks"
             :key="socialLink.href"
           >
-            <a :href="socialLink.href">{{ socialLink.label }}</a>
+            <a
+              :href="socialLink.href"
+              class="social-link"
+            >
+              <UIcon
+                :name="socialLink.icon"
+                class="social-icon"
+                aria-hidden="true"
+              />
+              <span class="visually-hidden">{{ socialLink.label }}</span>
+            </a>
           </li>
         </ul>
       </div>
@@ -109,6 +119,31 @@ const { contact, legalLinks, organisation, socialLinks } = useAppConfig()
 
 .legal-list {
   gap: 0 var(--space-2);
+}
+
+/* Links inside a labelled <nav> aren't running text, so no underline is needed (WCAG 1.4.1) */
+.legal-list a {
+  text-decoration: none;
+}
+
+.legal-list a:hover {
+  text-decoration: underline;
+}
+
+.social-list {
+  gap: 0 var(--space-2);
+}
+
+/* Square 44px target around a 24px logo */
+.social-link {
+  justify-content: center;
+  min-width: 2.75rem;
+}
+
+/* :deep() because the icon is rendered by Nuxt UI's UIcon */
+.social-link :deep(.social-icon) {
+  width: var(--space-5);
+  height: var(--space-5);
 }
 
 /* Visual "-" separator, hidden from assistive tech (second declaration is the alt-text form) */

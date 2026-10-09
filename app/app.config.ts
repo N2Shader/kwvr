@@ -13,12 +13,15 @@ export default defineAppConfig({
     { label: 'Terms & Conditions', href: 'https://kwvr.co.uk/private/terms-and-conditions/' },
     { label: 'Privacy Policy', href: 'https://kwvr.co.uk/private/privacy-policy/' },
   ],
+  // Shown as brand logos (Simple Icons, bundled locally); `label` is the link's accessible name.
+  // Keep the icon names in sync with `icon.clientBundle.icons` in nuxt.config.ts.
   socialLinks: [
-    { label: 'Facebook', href: 'https://www.facebook.com/WorthValleyRailway' },
-    { label: 'Twitter', href: 'https://twitter.com/WorthValley' },
-    { label: 'Instagram', href: 'https://www.instagram.com/worthvalleyrailway' },
-    { label: 'YouTube', href: 'https://www.youtube.com/c/KwvrUkRailway' },
-    { label: 'TikTok', href: 'https://www.tiktok.com/@worthvalleyrailway' },
+    { label: 'Facebook', href: 'https://www.facebook.com/WorthValleyRailway', icon: 'i-simple-icons-facebook' },
+    // Still "Twitter" on kwvr.co.uk; the platform's current logo is the X mark
+    { label: 'X (formerly Twitter)', href: 'https://twitter.com/WorthValley', icon: 'i-simple-icons-x' },
+    { label: 'Instagram', href: 'https://www.instagram.com/worthvalleyrailway', icon: 'i-simple-icons-instagram' },
+    { label: 'YouTube', href: 'https://www.youtube.com/c/KwvrUkRailway', icon: 'i-simple-icons-youtube' },
+    { label: 'TikTok', href: 'https://www.tiktok.com/@worthvalleyrailway', icon: 'i-simple-icons-tiktok' },
   ],
   contact: {
     telephone: { label: '01535 645214', href: 'tel:+441535645214' },

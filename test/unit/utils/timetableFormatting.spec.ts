@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatClockTime, formatLongDate, formatResultsSummary, formatStopCount } from '~/utils/timetableFormatting'
+import { formatClockTime, formatLongDate, formatResultsSummary, formatShortDate, formatStopCount } from '~/utils/timetableFormatting'
 
 describe('formatStopCount', () => {
   it('describes zero stops as direct', () => {
@@ -46,5 +46,11 @@ describe('formatResultsSummary', () => {
 
   it('uses the plural for several services', () => {
     expect(formatResultsSummary(5)).toBe('5 services found')
+  })
+})
+
+describe('formatShortDate', () => {
+  it('formats a calendar date with a short weekday and month', () => {
+    expect(formatShortDate({ year: 2026, month: 10, day: 9 })).toBe('Fri, 9 Oct 2026')
   })
 })

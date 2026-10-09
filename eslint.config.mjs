@@ -10,7 +10,12 @@ export default withNuxt(
     name: 'kwvr/accessibility',
     files: ['**/*.vue'],
     plugins: { 'vuejs-accessibility': pluginVueA11y },
-    rules: vueA11yRecommendedRules,
+    rules: {
+      ...vueA11yRecommendedRules,
+      // A <label> wrapping USelect, UInputTime or a <button> labels that control
+      // (see TimetableSearchForm and TimetableDepartureDatePicker)
+      'vuejs-accessibility/label-has-for': ['error', { controlComponents: ['USelect', 'UInputTime', 'button'] }],
+    },
   },
   {
     name: 'kwvr/style',
