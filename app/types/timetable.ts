@@ -1,3 +1,5 @@
+import type { CalendarDate, Time } from '@internationalized/date'
+
 export interface Station {
   id: string
   name: string
@@ -14,6 +16,16 @@ export interface TimetableSearchCriteria {
  * The date and time aren't here: they come from the user's clock (see `getDepartureDefaultsByClock`).
  */
 export type TimetableSearchDefaults = Partial<Pick<TimetableSearchCriteria, 'origin'>>
+
+/** What the search form holds before it's checked: any field may still be empty (or out of date) */
+export interface TimetableSearchFormValues {
+  originId?: string
+  departingDate?: CalendarDate
+  departingTime?: Time
+}
+
+/** One short message per field that needs fixing; a field with no entry is fine */
+export type TimetableSearchFormErrors = Partial<Record<keyof TimetableSearchFormValues, string>>
 
 export interface TrainService {
   id: string

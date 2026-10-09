@@ -14,6 +14,7 @@
 - Palette: Burgundy `#a32638`, Cream `#f4f4e9`, Grey `#423d33`, White `#ffffff`, plus the pastel `#f3e4e6` (burgundy tint). Defined once in `app/assets/css/tokens.css`.
 - Text is grey or white. Burgundy is the accent (headers, buttons, stand-out text). Cream is for backgrounds only.
 - Exception: the main nav links are black (`--colour-text-nav`) with no underline, per Figma.
+- Exception: form errors use a red outside the palette (`--colour-red` #c00000, via `--colour-text-error` / `--colour-border-error`), at 14px (`--font-size-xs`).
 - Pastel shades tell timetables apart (e.g. the tint marks alert rows).
 - Font: Gill Sans, from a local font stack only (no webfont files). SemiBold for headers, Regular for body.
 - Left-align long text; centre only short snippets.
@@ -45,7 +46,7 @@ app/
                        # unlayered: focus styles, .container, .button-primary, .surface-inverse, reduced-motion guard
   components/          # PascalCase .vue files, auto-imported
     site/              # SiteHeader, SiteNav, SiteFooter
-    timetable/         # TimetableSearchHero, TimetableSearchForm, TimetableDepartureDatePicker, TimetableResults, TimetableResultRow, TimetableEmptyState
+    timetable/         # TimetableSearchHero, TimetableSearchForm, TimetableOriginSelect, TimetableDepartureDatePicker, TimetableDepartureTimeField, TimetableSearchFieldError, TimetableResults, TimetableResultRow, TimetableEmptyState
     station/           # StationInfo, StationAttractions, StationAttractionCard
   composables/         # useXxx composables, auto-imported
   data/                # TEMPORARY static placeholder data — replace with an API composable
@@ -87,6 +88,7 @@ test/
 - Every form control has a visible `<label>`; group related inputs with `<fieldset>`/`<legend>`.
 - Full keyboard operability; logical tab order; never remove focus outlines (use `:focus-visible`).
 - Colour contrast ≥ 4.5:1 for body text, ≥ 3:1 for large text and UI components. Never convey meaning by colour alone.
+- Form errors appear only after a search is tried, under the field to fix, tied to its control with `aria-describedby` (plus `aria-invalid` where the role supports it), with a visually hidden "Error:" prefix; focus moves to the first field to fix. Never disable the submit button.
 - Announce async results (e.g. search results count) via an `aria-live="polite"` region.
 - Touch targets ≥ 24×24 CSS px (WCAG 2.2 2.5.8).
 - Use `.visually-hidden` for screen-reader-only text.

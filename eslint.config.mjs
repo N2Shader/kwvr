@@ -13,7 +13,7 @@ export default withNuxt(
     rules: {
       ...vueA11yRecommendedRules,
       // A <label> wrapping USelect, UInputTime or a <button> labels that control
-      // (see TimetableSearchForm and TimetableDepartureDatePicker)
+      // (see TimetableOriginSelect, TimetableDepartureDatePicker and TimetableDepartureTimeField)
       'vuejs-accessibility/label-has-for': ['error', { controlComponents: ['USelect', 'UInputTime', 'button'] }],
     },
   },

@@ -16,6 +16,7 @@
  *   grey-soft on white 3.4:1, grey-soft on cream 3.1:1 (UI boundaries and disabled text only —
  *   WCAG exempts disabled controls; never use it for readable text)
  *   black on white 21:1
+ *   error red on white 6.5:1, error red on cream 5.9:1
  *
  * Breakpoints (custom properties can't be used in media queries — keep in sync manually):
  *   --bp-sm: 40rem  (640px)
@@ -37,6 +38,8 @@
   --colour-grey-soft: #8e8b85;
   /* Not in the brand palette — used only for the main nav links (per the Figma design) and the hero shade */
   --colour-black: #000000;
+  /* Not in the brand palette — form error messages only. A truer red than the burgundy, so errors don't read as accents */
+  --colour-red: #c00000;
 
   /* Colour — semantic */
   --colour-primary: var(--colour-burgundy);
@@ -55,8 +58,10 @@
   --colour-text-inverse: var(--colour-white);
   --colour-text-nav: var(--colour-black);
   --colour-text-disabled: var(--colour-grey-soft);
+  --colour-text-error: var(--colour-red);
 
   --colour-border: var(--colour-grey-soft);
+  --colour-border-error: var(--colour-red);
 
   --colour-focus-ring: var(--colour-burgundy);
   --colour-focus-ring-inverse: var(--colour-white);
@@ -75,7 +80,8 @@
   --font-family-base: 'Gill Sans', 'Gill Sans MT', 'Gill Sans Nova', Calibri, 'Trebuchet MS', sans-serif;
   --font-family-mono: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 
-  /* Gill Sans has a small x-height, so the base size is a step up from 1rem */
+  /* Gill Sans has a small x-height, so the base size is a step up from 1rem. xs (14px) is for short form errors only */
+  --font-size-xs: 0.875rem;
   --font-size-sm: 0.9375rem;
   --font-size-base: 1.125rem;
   --font-size-lg: 1.25rem;

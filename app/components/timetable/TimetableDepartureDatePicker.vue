@@ -4,6 +4,8 @@ import type { CalendarDate } from '@internationalized/date'
 defineProps<{
   /** Days before this can't be picked */
   earliestDate?: CalendarDate
+  /** Shown under the field after a search that can't run with this date */
+  errorMessage?: string
 }>()
 
 const selectedDate = defineModel<CalendarDate>()
@@ -12,6 +14,7 @@ const appConfig = useAppConfig()
 const dateFieldId = useId()
 const dateLabelId = useId()
 const dateValueId = useId()
+const dateErrorId = useId()
 const isCalendarOpen = ref(false)
 
 const selectedDateText = computed(() => selectedDate.value ? formatShortDate(selectedDate.value) : 'Select a date')
@@ -30,6 +33,7 @@ const closeCalendar = () => {
   <label
     :for="dateFieldId"
     class="search-field"
+    :class="{ 'search-field-invalid': errorMessage }"
   >
     <span
       :id="dateLabelId"
@@ -46,6 +50,7 @@ const closeCalendar = () => {
         type="button"
         class="search-field-control search-date-trigger"
         :aria-labelledby="`${dateLabelId} ${dateValueId}`"
+        :aria-describedby="errorMessage ? dateErrorId : undefined"
       >
         <span :id="dateValueId">{{ selectedDateText }}</span>
         <UIcon
@@ -69,6 +74,11 @@ const closeCalendar = () => {
         />
       </template>
     </UPopover>
+    <TimetableSearchFieldError
+      v-if="errorMessage"
+      :id="dateErrorId"
+      :message="errorMessage"
+    />
     <input
       type="hidden"
       name="departingDate"

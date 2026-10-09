@@ -26,3 +26,7 @@ export const formatResultsSummary = (serviceCount: number): string => {
   if (serviceCount === 0) return 'No services found'
   return serviceCount === 1 ? '1 service found' : `${serviceCount} services found`
 }
+
+/** `{ hour: 9, minute: 5 }` → "09:05" */
+export const formatTimeOfDay = ({ hour, minute }: { hour: number, minute: number }): string =>
+  `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`

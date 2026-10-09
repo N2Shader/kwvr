@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { getLocalTimeZone, toCalendarDate, today } from '@internationalized/date'
 import type { CalendarDate, Time } from '@internationalized/date'
-import type { Station, TimetableSearchDefaults } from '~/types/timetable'
+import type { Station, TimetableSearchDefaults, TimetableSearchFormErrors } from '~/types/timetable'
 
 const props = defineProps<{
   stations: Station[]
@@ -8,10 +9,7 @@ const props = defineProps<{
 }>()
 
 const legendId = useId()
-const originFieldId = useId()
-const originLabelId = useId()
-const departingTimeFieldId = useId()
-const departingTimeLabelId = useId()
+const searchForm = useTemplateRef<HTMLFormElement>('searchForm')
 
 // Local state only — searching is wired up once the API is available
 const selectedOriginId = ref(props.defaultCriteria.origin?.id)
@@ -19,22 +17,84 @@ const earliestDepartingDate = ref<CalendarDate>()
 const selectedDepartingDate = ref<CalendarDate>()
 const selectedDepartingTime = ref<Time>()
 
+const {
+  departureClock,
+  departingTimeNotice,
+  earliestDepartingTime,
+  refreshDepartureClock,
+  commitDepartingTime,
+  pauseDepartingTimeCommit,
+  resumeDepartingTimeCommit,
+} = useDepartureTimeLimit(selectedDepartingDate, selectedDepartingTime)
+
 // The date and time prefill read the user's own clock, so they're set on the client only
-// (on the server they would use the server's clock and time zone, and mismatch on hydration)
+// (on the server they would use the server's clock and time zone, and mismatch on hydration).
+// The prefill and the time limit read the same instant.
 onMounted(() => {
-  const departureDefaults = getDepartureDefaultsByClock()
+  refreshDepartureClock()
+  const departureDefaults = getDepartureDefaultsByClock(departureClock.value)
   earliestDepartingDate.value = departureDefaults.earliestDate
   selectedDepartingDate.value = departureDefaults.date
   selectedDepartingTime.value = departureDefaults.time
 })
+
+// Errors show only once a search has been tried; after that they update as each field is fixed
+const hasTriedSearch = ref(false)
+const searchFormErrors = computed<TimetableSearchFormErrors>(() => {
+  if (!hasTriedSearch.value) return {}
+  const todayDate = departureClock.value ? toCalendarDate(departureClock.value) : today(getLocalTimeZone())
+  return getSearchFormErrorsByValues({
+    originId: selectedOriginId.value,
+    departingDate: selectedDepartingDate.value,
+    departingTime: selectedDepartingTime.value,
+  }, { todayDate, earliestTime: earliestDepartingTime.value })
+})
+
+// Focus goes to the first field to fix, whose control reads its error out (aria-describedby)
+const focusFirstInvalidField = () => {
+  searchForm.value
+    ?.querySelector('.search-field-invalid')
+    ?.querySelector<HTMLElement>('button, [role="spinbutton"]')
+    ?.focus()
+}
+
+// Enter in the time field and the Search button both end up here, through the form's submit event.
+// The Search button is never disabled: it stays focusable, and pressing it explains what's missing.
+// A time already gone today is refused, not fixed: the user sees an error and chooses again.
+const submitSearch = async () => {
+  // Moving focus to a field to fix mustn't quietly fix the time on the way out of the time field
+  pauseDepartingTimeCommit()
+  // Time may have passed since the field was filled in, so check against the clock again
+  refreshDepartureClock()
+  hasTriedSearch.value = true
+
+  if (Object.keys(searchFormErrors.value).length > 0) {
+    await nextTick()
+    focusFirstInvalidField()
+    resumeDepartingTimeCommit()
+    return
+  }
+
+  resumeDepartingTimeCommit()
+  hasTriedSearch.value = false
+
+  // TODO: replace with the API search once it's available
+  // eslint-disable-next-line no-console -- temporary until the search is wired up
+  console.log('Search train times', {
+    originId: selectedOriginId.value,
+    departingDate: selectedDepartingDate.value?.toString(),
+    departingTime: selectedDepartingTime.value?.toString(),
+  })
+}
 </script>
 
 <template>
   <form
+    ref="searchForm"
     role="search"
     class="search-form"
     :aria-labelledby="legendId"
-    @submit.prevent
+    @submit.prevent="submitSearch"
   >
     <fieldset class="search-form-fieldset">
       <legend
@@ -44,63 +104,33 @@ onMounted(() => {
         Search train times
       </legend>
 
-      <label
-        :for="originFieldId"
-        class="search-field"
-      >
-        <span
-          :id="originLabelId"
-          class="search-field-label"
-        >Departing from</span>
-        <!--
-          The trigger is a role="combobox" <button>; aria-labelledby names it reliably in every browser.
-          The placeholder shows in the trigger only — it is never an option in the listbox.
-        -->
-        <USelect
-          :id="originFieldId"
-          v-model="selectedOriginId"
-          :items="stations"
-          value-key="id"
-          label-key="name"
-          name="origin"
-          placeholder="Select a station"
-          variant="none"
-          :aria-labelledby="originLabelId"
-          :ui="{ trailing: 'search-origin-trailing', trailingIcon: 'search-origin-chevron', content: 'search-origin-menu', item: 'search-origin-option' }"
-          class="search-field-control search-origin-trigger"
-        />
-      </label>
+      <TimetableOriginSelect
+        v-model="selectedOriginId"
+        :stations="stations"
+        :error-message="searchFormErrors.originId"
+      />
 
       <TimetableDepartureDatePicker
         v-model="selectedDepartingDate"
         :earliest-date="earliestDepartingDate"
+        :error-message="searchFormErrors.departingDate"
       />
 
-      <label
-        :for="departingTimeFieldId"
-        class="search-field"
-      >
-        <span
-          :id="departingTimeLabelId"
-          class="search-field-label"
-        >Time</span>
-        <!-- A group of hour and minute spinbuttons; the label's `for` reaches its hidden input, which forwards focus -->
-        <UInputTime
-          :id="departingTimeFieldId"
-          v-model="selectedDepartingTime"
-          name="departingTime"
-          variant="none"
-          locale="en-GB"
-          :hour-cycle="24"
-          :aria-labelledby="departingTimeLabelId"
-          class="search-field-control search-time-field"
-        />
-      </label>
+      <TimetableDepartureTimeField
+        v-model="selectedDepartingTime"
+        :earliest-time="earliestDepartingTime"
+        :notice="departingTimeNotice"
+        :error-message="searchFormErrors.departingTime"
+        @edit="resumeDepartingTimeCommit"
+        @commit="commitDepartingTime"
+        @search="searchForm?.requestSubmit()"
+      />
 
       <UButton
         type="submit"
         label="Search"
         class="button-primary search-form-submit"
+        @pointerdown="pauseDepartingTimeCommit"
       />
     </fieldset>
   </form>
@@ -120,8 +150,8 @@ onMounted(() => {
 }
 
 /*
- * :deep() because USelect, UInputTime and UButton render through multi-root components, and the
- * date picker is a child component, so their inner elements don't receive this component's scope attribute.
+ * :deep() because the origin, date and time fields are child components (and UButton renders through a
+ * multi-root component), so their inner elements don't receive this component's scope attribute.
  * `font: inherit` and `text-align: start` cancel the <button> text styles of the Select and date triggers.
  */
 .search-field :deep(.search-field-label) {
@@ -144,35 +174,9 @@ onMounted(() => {
   outline-offset: -1px;
 }
 
-/* The chevron is absolutely positioned, so keep the value text clear of it (1.25rem = chevron size) */
-.search-field :deep(.search-origin-trigger) {
-  padding-inline-end: calc(var(--space-3) + 1.25rem + var(--space-2));
-}
-
-.search-field :deep(.search-origin-trailing) {
-  padding-inline-end: var(--space-3);
-}
-
-/* The chevron flips while the menu is open, keyed off the same ARIA state screen readers hear */
-.search-field :deep(.search-origin-chevron) {
-  transition: transform var(--duration-fast) ease;
-}
-
-.search-field :deep(.search-origin-trigger[aria-expanded='true'] .search-origin-chevron) {
-  transform: rotate(180deg);
-}
-
-/* Time: the hour and minute segments take focus, so the whole field shows the ring */
-.search-field :deep(.search-time-field:focus-within) {
-  outline: var(--focus-ring-width) solid var(--colour-focus-ring);
-  outline-offset: -1px;
-}
-
-/* The focused segment is filled, like a native time input, so it's clear which part is changing */
-.search-field :deep(.search-time-field [data-slot='segment']:focus-visible) {
-  outline: none;
-  color: var(--colour-primary-contrast);
-  background-color: var(--colour-primary);
+/* A field to fix gets a red edge, alongside its written error (so it isn't shown by colour alone) */
+.search-field-invalid :deep(.search-field-control) {
+  border-color: var(--colour-border-error);
 }
 
 .search-form-fieldset :deep(.search-form-submit) {
@@ -182,38 +186,31 @@ onMounted(() => {
 /*
  * Desktop: one row, with the button lined up against the controls.
  * From 48rem the hero card is wide enough for all four on a single line; below that they stack.
+ * Three shared rows (label, control, error), so an error under one field never pushes its control
+ * out of line with the others.
  */
 @media (min-width: 48rem) {
   .search-form-fieldset {
     /* The station takes the spare space; date, time and the button take what their content needs */
     grid-template-columns: minmax(0, 1fr) auto auto auto;
-    align-items: end;
-    gap: var(--space-4);
+    grid-template-rows: auto auto auto;
+    column-gap: var(--space-4);
+    row-gap: var(--space-1);
+  }
+
+  .search-field {
+    grid-row: 1 / span 3;
+    grid-template-rows: subgrid;
+  }
+
+  .search-field :deep(.search-field-error) {
+    grid-row: 3;
+  }
+
+  .search-form-fieldset :deep(.search-form-submit) {
+    grid-row: 2;
+    align-self: end;
   }
 }
 </style>
 
-<!--
-  Not scoped: the origin menu is portalled to <body>, out of reach of scoped CSS.
-  Unlayered, so it beats Nuxt UI's text-sm and max-h. The menu's ring uses the soft border token via --ui-border.
--->
-<style>
-.search-origin-menu {
-  /* Fit every station; scroll only when the viewport is genuinely too short (e.g. a landscape phone) */
-  max-height: var(--reka-select-content-available-height);
-  color: var(--colour-text);
-  /* Box-shadow rings vanish in forced-colours mode; a transparent border keeps the menu's edge */
-  border: 1px solid transparent;
-}
-
-.search-origin-option {
-  font: inherit;
-  font-size: var(--font-size-base);
-  color: var(--colour-text);
-}
-
-/* Burgundy tick marks the selected station */
-.search-origin-option [data-slot='itemTrailingIcon'] {
-  color: var(--colour-text-accent);
-}
-</style>
