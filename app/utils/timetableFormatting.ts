@@ -1,3 +1,5 @@
+import type { TrainService } from '~/types/timetable'
+
 // Pure display formatters for timetable data. Date-times are local ISO strings without an
 // offset, so parsing and formatting both happen in the same (local) zone.
 
@@ -21,11 +23,18 @@ export const formatLongDate = (isoDateTime: string): string => longDateFormatter
 export const formatShortDate = ({ year, month, day }: { year: number, month: number, day: number }): string =>
   shortDateFormatter.format(new Date(year, month - 1, day))
 
+/** A result → "Haworth 10:22 to Keighley 10:43" */
+export const formatJourneySummary = ({ origin, destination, departsAt, arrivesAt }: Pick<TrainService, 'origin' | 'destination' | 'departsAt' | 'arrivesAt'>): string =>
+  `${origin.name} ${formatClockTime(departsAt)} to ${destination.name} ${formatClockTime(arrivesAt)}`
+
 /** `5` → "5 services found", `1` → "1 service found", `0` → "No services found" */
 export const formatResultsSummary = (serviceCount: number): string => {
   if (serviceCount === 0) return 'No services found'
   return serviceCount === 1 ? '1 service found' : `${serviceCount} services found`
 }
+
+/** `Haworth` → "Searching for departures from Haworth…" */
+export const formatSearchingSummary = (originName: string): string => `Searching for departures from ${originName}…`
 
 /** `{ hour: 9, minute: 5 }` → "09:05" */
 export const formatTimeOfDay = ({ hour, minute }: { hour: number, minute: number }): string =>

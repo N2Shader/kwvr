@@ -1,15 +1,22 @@
-import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { axe } from 'vitest-axe'
 import TimetableResults from '~/components/timetable/TimetableResults.vue'
 import { searchCriteriaFixture, servicesFixture } from '../../fixtures/timetableFixtures'
 
+// Attached to the document because the journey modal is portalled to <body>
 const mountResults = () => mountSuspended(TimetableResults, {
   props: { services: servicesFixture, searchCriteria: searchCriteriaFixture },
+  attachTo: document.body,
 })
 
 describe('TimetableResults', () => {
-  it('renders a captioned semantic table', async () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('renders a captioned table with column headers', async () => {
     const wrapper = await mountResults()
     const resultsTable = wrapper.find('table')
 
@@ -18,12 +25,12 @@ describe('TimetableResults', () => {
     expect(resultsTable.findAll('tbody tr')).toHaveLength(servicesFixture.length)
   })
 
-  it('heads each row with the origin and its departure time', async () => {
+  it('starts each row with the origin and its departure time', async () => {
     const wrapper = await mountResults()
-    const firstRowHeader = wrapper.find('tbody tr th[scope="row"]')
-    const departureTime = firstRowHeader.find('time')
+    const firstOriginCell = wrapper.find('tbody tr .result-origin')
+    const departureTime = firstOriginCell.find('time')
 
-    expect(firstRowHeader.text()).toContain('Haworth')
+    expect(firstOriginCell.text()).toContain('Haworth')
     expect(departureTime.attributes('datetime')).toBe('2026-04-24T12:20')
     expect(departureTime.text()).toBe('12:20')
   })
@@ -33,11 +40,21 @@ describe('TimetableResults', () => {
     const [firstRow, secondRow] = wrapper.findAll('tbody tr')
     const arrivalTime = firstRow?.find('.result-destination time')
 
-    expect(firstRow?.find('.result-info').text()).toBe('4 stops')
+    expect(firstRow?.find('.result-info').text()).toBe('3 stops')
     expect(secondRow?.find('.result-info').text()).toBe('Direct')
     expect(firstRow?.find('.result-destination').text()).toContain('Keighley')
     expect(arrivalTime?.attributes('datetime')).toBe('2026-04-24T13:00')
     expect(arrivalTime?.text()).toBe('13:00')
+  })
+
+  it('shows the timetable symbols of each row in the Info column, with their meaning as alt text', async () => {
+    const wrapper = await mountResults()
+    const [firstRow, secondRow] = wrapper.findAll('tbody tr')
+    const firstRowIcons = firstRow?.findAll('.result-info img') ?? []
+
+    expect(firstRowIcons.map(noteIcon => noteIcon.attributes('alt'))).toEqual(['Diesel train', 'Rail Story museums at Ingrow', 'National Rail connections'])
+    expect(firstRowIcons[0]?.attributes('src')).toBe('/images/timetable-key/diesel.webp')
+    expect(secondRow?.find('.result-info img').exists()).toBe(false)
   })
 
   it('labels service alerts in text, not by colour alone', async () => {
@@ -50,6 +67,36 @@ describe('TimetableResults', () => {
     resultRows
       .filter(resultRow => !resultRow.classes('has-service-alert'))
       .forEach(resultRow => expect(resultRow.text()).not.toContain('Service alert'))
+  })
+
+  it('gives each row a button that names the journey it opens', async () => {
+    const wrapper = await mountResults()
+    const journeyButtons = wrapper.findAll('tbody tr .result-journey-button')
+
+    expect(journeyButtons).toHaveLength(servicesFixture.length)
+    expect(journeyButtons[0]?.attributes('aria-haspopup')).toBe('dialog')
+    expect(journeyButtons[0]?.text()).toBe('Journey details: Haworth 12:20 to Keighley 13:00')
+  })
+
+  it('opens the journey in a modal, with its stops, when a row is chosen', async () => {
+    const wrapper = await mountResults()
+
+    await wrapper.get('tbody tr .result-journey-button').trigger('click')
+    await vi.waitFor(() => expect(document.body.querySelector('[role="dialog"]')).not.toBeNull())
+    const journeyDialog = document.body.querySelector('[role="dialog"]')
+
+    expect(journeyDialog?.querySelector('h2')?.textContent).toBe('Haworth to Keighley')
+    expect(journeyDialog?.querySelector('caption')?.textContent).toBe('Stops from Haworth to Keighley')
+    expect(journeyDialog?.querySelectorAll('tbody tr')).toHaveLength(5)
+  })
+
+  it('opens the journey when one of the row’s symbols is clicked too', async () => {
+    const wrapper = await mountResults()
+
+    wrapper.get('tbody tr .result-note-icon').element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await nextTick()
+
+    await vi.waitFor(() => expect(document.body.querySelector('[role="dialog"]')).not.toBeNull())
   })
 
   it('has no detectable accessibility violations', async () => {

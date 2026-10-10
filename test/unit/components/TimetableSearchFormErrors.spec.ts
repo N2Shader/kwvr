@@ -43,15 +43,11 @@ const typeDepartingTime = async (wrapper: VueWrapper, hour: number, minute: numb
 const findErrorTextById = (wrapper: VueWrapper, errorId?: string) => wrapper.find(`[id="${errorId}"]`).text()
 
 describe('TimetableSearchForm search and errors', () => {
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>
-
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    consoleLogSpy.mockRestore()
     vi.useRealTimers()
     document.body.innerHTML = ''
   })
@@ -71,7 +67,7 @@ describe('TimetableSearchForm search and errors', () => {
     await submitSearchForm(wrapper)
     const originCombobox = wrapper.find('[role="combobox"]')
 
-    expect(consoleLogSpy).not.toHaveBeenCalled()
+    expect(wrapper.emitted('search')).toBeUndefined()
     expect(originCombobox.attributes('aria-invalid')).toBe('true')
     expect(findErrorTextById(wrapper, originCombobox.attributes('aria-describedby'))).toBe('Error: Select a station to depart from')
     expect(document.activeElement).toBe(originCombobox.element)
@@ -99,7 +95,7 @@ describe('TimetableSearchForm search and errors', () => {
     await submitSearchForm(wrapper)
     const timeField = wrapper.find('.search-time-field')
 
-    expect(consoleLogSpy).not.toHaveBeenCalled()
+    expect(wrapper.emitted('search')).toBeUndefined()
     expect(findErrorTextById(wrapper, timeField.attributes('aria-describedby'))).toBe('Error: Enter a departure time (hours and minutes)')
     expect(document.activeElement).toBe(wrapper.find('[data-segment="hour"]').element)
 
@@ -112,8 +108,7 @@ describe('TimetableSearchForm search and errors', () => {
     await wrapper.find('[data-segment="minute"]').trigger('keydown', { key: 'Enter' })
     await flushPromises()
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(1)
-    expect(consoleLogSpy).toHaveBeenCalledWith('Search train times', { originId: 'haworth', departingDate: '2026-10-09', departingTime: '14:30:00' })
+    expect(wrapper.emitted('search')).toEqual([[{ origin: haworthFixture, departingAfter: '2026-10-09T14:30' }]])
 
     wrapper.unmount()
   })
@@ -126,7 +121,7 @@ describe('TimetableSearchForm search and errors', () => {
     await flushPromises()
     const timeField = wrapper.find('.search-time-field')
 
-    expect(consoleLogSpy).not.toHaveBeenCalled()
+    expect(wrapper.emitted('search')).toBeUndefined()
     expect(wrapper.find('[data-segment="hour"]').text()).toBe('09')
     expect(findErrorTextById(wrapper, timeField.attributes('aria-describedby'))).toBe('Error: Choose a time from 14:30 onwards')
 
@@ -143,7 +138,7 @@ describe('TimetableSearchForm search and errors', () => {
     await searchButton.trigger('click')
     await flushPromises()
 
-    expect(consoleLogSpy).not.toHaveBeenCalled()
+    expect(wrapper.emitted('search')).toBeUndefined()
     expect(wrapper.find('[data-segment="hour"]').text()).toBe('09')
     expect(wrapper.find('[aria-live="polite"]').text()).toBe('')
     expect(wrapper.find('.search-field-error').text()).toBe('Error: Choose a time from 14:30 onwards')
@@ -162,8 +157,7 @@ describe('TimetableSearchForm search and errors', () => {
 
     await submitSearchForm(wrapper)
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(1)
-    expect(consoleLogSpy).toHaveBeenCalledWith('Search train times', expect.objectContaining({ departingTime: '15:00:00' }))
+    expect(wrapper.emitted('search')).toEqual([[{ origin: haworthFixture, departingAfter: '2026-10-09T15:00' }]])
 
     wrapper.unmount()
   })

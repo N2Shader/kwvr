@@ -1,0 +1,796 @@
+{
+  "timeTable": "orange",
+  "stations": [
+    {
+      "id": "oxenhope",
+      "name": "Oxenhope",
+      "notes": []
+    },
+    {
+      "id": "haworth",
+      "name": "Haworth",
+      "notes": []
+    },
+    {
+      "id": "oakworth",
+      "name": "Oakworth",
+      "notes": []
+    },
+    {
+      "id": "damems",
+      "name": "Damems",
+      "notes": []
+    },
+    {
+      "id": "ingrow-west",
+      "name": "Ingrow West",
+      "notes": [
+        "rail-story"
+      ]
+    },
+    {
+      "id": "keighley",
+      "name": "Keighley",
+      "notes": [
+        "national-rail-connection"
+      ]
+    }
+  ],
+  "journeys": [
+    {
+      "from": "oxenhope",
+      "to": "keighley",
+      "services": [
+        {
+          "id": "orange-haworth-0922",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "haworth",
+              "time": "09:22",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "09:25",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "09:30",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "09:33",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "09:43",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-oxenhope-1015",
+          "notes": [
+            "steam",
+            "bar"
+          ],
+          "calls": [
+            {
+              "stationId": "oxenhope",
+              "time": "10:15",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "10:22",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "10:25",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "10:30",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "10:33",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "10:40",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-oxenhope-1100",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "oxenhope",
+              "time": "11:00",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "11:07",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "11:10",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "11:15",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "11:18",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "11:25",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-oxenhope-1145",
+          "notes": [
+            "steam",
+            "bar"
+          ],
+          "calls": [
+            {
+              "stationId": "oxenhope",
+              "time": "11:45",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "11:52",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "11:55",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "12:00",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "12:03",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "12:10",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-oxenhope-1230",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "oxenhope",
+              "time": "12:30",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "12:37",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "12:40",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "12:45",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "12:48",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "12:55",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-oxenhope-1340",
+          "notes": [
+            "steam",
+            "bar"
+          ],
+          "calls": [
+            {
+              "stationId": "oxenhope",
+              "time": "13:40",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "13:47",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "13:50",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "13:55",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "13:58",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "14:05",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-oxenhope-1430",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "oxenhope",
+              "time": "14:30",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "14:37",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "14:40",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "14:45",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "14:48",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "14:55",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-oxenhope-1520",
+          "notes": [
+            "steam",
+            "bar"
+          ],
+          "calls": [
+            {
+              "stationId": "oxenhope",
+              "time": "15:20",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "15:27",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "15:30",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "15:35",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "15:38",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "15:45",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-oxenhope-1605",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "oxenhope",
+              "time": "16:05",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "16:12",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oakworth",
+              "time": "16:15",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "16:20",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "16:23",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "keighley",
+              "time": "16:30",
+              "timeType": "arrival"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "keighley",
+      "to": "oxenhope",
+      "services": [
+        {
+          "id": "orange-keighley-1015",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "10:15",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "10:22",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "10:25",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "10:29",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "10:39",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oxenhope",
+              "time": "10:45",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-keighley-1100",
+          "notes": [
+            "steam",
+            "bar"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "11:00",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "11:07",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "11:10",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "11:14",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "11:24",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oxenhope",
+              "time": "11:30",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-keighley-1145",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "11:45",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "11:52",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "11:55",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "11:59",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "12:09",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oxenhope",
+              "time": "12:15",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-keighley-1230",
+          "notes": [
+            "steam",
+            "bar"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "12:30",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "12:37",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "12:40",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "12:44",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "12:54",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oxenhope",
+              "time": "13:00",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-keighley-1340",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "13:40",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "13:47",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "13:50",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "13:54",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "14:04",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oxenhope",
+              "time": "14:10",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-keighley-1430",
+          "notes": [
+            "steam",
+            "bar"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "14:30",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "14:37",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "14:40",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "14:44",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "14:54",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oxenhope",
+              "time": "15:00",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-keighley-1520",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "15:20",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "15:27",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "15:30",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "15:34",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "15:44",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oxenhope",
+              "time": "15:50",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-keighley-1605",
+          "notes": [
+            "steam"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "16:05",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "16:12",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "16:15",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "16:19",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "16:29",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "oxenhope",
+              "time": "16:35",
+              "timeType": "arrival"
+            }
+          ]
+        },
+        {
+          "id": "orange-keighley-1650",
+          "notes": [
+            "diesel"
+          ],
+          "calls": [
+            {
+              "stationId": "keighley",
+              "time": "16:50",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "ingrow-west",
+              "time": "16:57",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "damems",
+              "time": "17:00",
+              "timeType": "departure",
+              "requestStop": true
+            },
+            {
+              "stationId": "oakworth",
+              "time": "17:04",
+              "timeType": "departure"
+            },
+            {
+              "stationId": "haworth",
+              "time": "17:12",
+              "timeType": "arrival"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "key": [
+    {
+      "code": "a",
+      "description": "Arrival Time"
+    },
+    {
+      "code": "d",
+      "description": "Departure Time"
+    },
+    {
+      "code": "x",
+      "description": "Request Stop. Passengers wishing to board should inform station staff. Passengers wishing to alight must advise the Train Guard before the train leaves the previous station."
+    },
+    {
+      "code": "national-rail-connection",
+      "label": "National Rail connections",
+      "description": "Connections with National Rail services to Leeds, Bradford, Skipton & beyond",
+      "icon": "/images/timetable-key/national-rail.webp"
+    },
+    {
+      "code": "rail-story",
+      "label": "Rail Story museums at Ingrow",
+      "description": "Alight at Ingrow for “Rail Story” museums & exhibitions.",
+      "icon": "/images/timetable-key/rail-story.webp"
+    },
+    {
+      "code": "bar",
+      "label": "Real Ale Bar Car",
+      "description": "This train includes a Real Ale Bar Car offering teas, coffees, soft drinks, real ales, wines and spirits, plus a tempting selection of snacks and confectionery.",
+      "icon": "/images/timetable-key/bar.webp"
+    },
+    {
+      "code": "steam",
+      "label": "Steam train",
+      "description": "Steam Train",
+      "icon": "/images/timetable-key/steam.webp"
+    },
+    {
+      "code": "diesel",
+      "label": "Diesel train",
+      "description": "Diesel Train",
+      "icon": "/images/timetable-key/diesel.webp"
+    }
+  ]
+}

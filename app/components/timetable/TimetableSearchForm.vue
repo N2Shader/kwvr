@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { getLocalTimeZone, toCalendarDate, today } from '@internationalized/date'
 import type { CalendarDate, Time } from '@internationalized/date'
-import type { Station, TimetableSearchDefaults, TimetableSearchFormErrors } from '~/types/timetable'
+import type { Station, TimetableSearchCriteria, TimetableSearchDefaults, TimetableSearchFormErrors, TimetableSearchFormValues } from '~/types/timetable'
 
 const props = defineProps<{
   stations: Station[]
   defaultCriteria: TimetableSearchDefaults
 }>()
 
+// A search that passes the checks goes out as criteria; the page runs it (see useTimetableSearch)
+const emit = defineEmits<{
+  search: [criteria: TimetableSearchCriteria]
+}>()
+
 const legendId = useId()
 const searchForm = useTemplateRef<HTMLFormElement>('searchForm')
 
-// Local state only — searching is wired up once the API is available
+// The fields' values, until a search sends them
 const selectedOriginId = ref(props.defaultCriteria.origin?.id)
 const earliestDepartingDate = ref<CalendarDate>()
 const selectedDepartingDate = ref<CalendarDate>()
@@ -40,16 +45,18 @@ const applyDepartureDefaults = () => {
 
 onMounted(applyDepartureDefaults)
 
+const searchFormValues = computed<TimetableSearchFormValues>(() => ({
+  originId: selectedOriginId.value,
+  departingDate: selectedDepartingDate.value,
+  departingTime: selectedDepartingTime.value,
+}))
+
 // Errors show only once a search has been tried; after that they update as each field is fixed
 const hasTriedSearch = ref(false)
 const searchFormErrors = computed<TimetableSearchFormErrors>(() => {
   if (!hasTriedSearch.value) return {}
   const todayDate = departureClock.value ? toCalendarDate(departureClock.value) : today(getLocalTimeZone())
-  return getSearchFormErrorsByValues({
-    originId: selectedOriginId.value,
-    departingDate: selectedDepartingDate.value,
-    departingTime: selectedDepartingTime.value,
-  }, { todayDate, earliestTime: earliestDepartingTime.value })
+  return getSearchFormErrorsByValues(searchFormValues.value, { todayDate, earliestTime: earliestDepartingTime.value })
 })
 
 // Focus goes to the first field to fix, whose control reads its error out (aria-describedby)
@@ -80,17 +87,13 @@ const submitSearch = async () => {
   resumeDepartingTimeCommit()
   hasTriedSearch.value = false
 
-  // TODO: replace with the API search once it's available
-  // eslint-disable-next-line no-console -- temporary until the search is wired up
-  console.log('Search train times', {
-    originId: selectedOriginId.value,
-    departingDate: selectedDepartingDate.value?.toString(),
-    departingTime: selectedDepartingTime.value?.toString(),
-  })
+  const searchCriteria = getSearchCriteriaByFormValues(searchFormValues.value, props.stations)
+  if (searchCriteria) emit('search', searchCriteria)
 }
 
 // A station card under the search box: fill in that station, put the date and time back to the next
-// departure (the same rule as the prefill), and search, so the form shows what was searched
+// departure (the same rule as the prefill), and submit, so the form shows what was searched.
+// It goes through the same checks and the same `search` event as the Search button.
 const searchNextTrainFromStation = (station: Station) => {
   selectedOriginId.value = station.id
   applyDepartureDefaults()

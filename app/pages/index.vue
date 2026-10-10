@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import type { Station, TimetableSearchState } from '~/types/timetable'
+import type { Station } from '~/types/timetable'
 import { placeholderSearchDefaults, placeholderStations } from '~/data/placeholderTimetable'
 import { stationHighlights } from '~/data/stationHighlights'
 
 useHead({ title: 'Find train times — Keighley & Worth Valley Railway' })
 
-// The state lives here until the API search composable takes it over
-const searchState = ref<TimetableSearchState>({ status: 'first-use' })
+// Search box → useTimetableSearch → /api/timetable/search → the external timetable API
+const { searchState, searchTimetableByCriteria } = useTimetableSearch()
 
 const resultsSummary = computed(() => {
   const state = searchState.value
+  if (state.status === 'loading') return formatSearchingSummary(state.criteria.origin.name)
   if (state.status === 'results') return formatResultsSummary(state.services.length)
   if (state.status === 'no-results') return formatResultsSummary(0)
-  // Loading and error announcements come with those states' designs
+  // The error announcement comes with that state's design
   return ''
 })
 
@@ -27,10 +28,11 @@ const timetableSearchForm = useTemplateRef<{ searchNextTrainFromStation: (statio
         ref="timetableSearchForm"
         :stations="placeholderStations"
         :default-criteria="placeholderSearchDefaults"
+        @search="searchTimetableByCriteria"
       />
     </TimetableSearchHero>
 
-    <!-- Always rendered, so screen readers hear the count when results change -->
+    <!-- Always rendered, so screen readers hear the search start and the count when results arrive -->
     <p
       class="results-summary visually-hidden"
       aria-live="polite"
@@ -44,7 +46,11 @@ const timetableSearchForm = useTemplateRef<{ searchNextTrainFromStation: (statio
       @select-station="timetableSearchForm?.searchNextTrainFromStation($event)"
     />
     <TimetableLoadingState v-else-if="searchState.status === 'loading'" />
-    <TimetableResultsState v-else-if="searchState.status === 'results'" />
+    <TimetableResultsState
+      v-else-if="searchState.status === 'results'"
+      :criteria="searchState.criteria"
+      :services="searchState.services"
+    />
     <TimetableNoResultsState v-else-if="searchState.status === 'no-results'" />
     <TimetableErrorState v-else />
   </div>

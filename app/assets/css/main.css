@@ -9,6 +9,8 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
 @import './tokens.css';
+/* Unlayered, like the rest of this file: the results and journey-stops tables */
+@import './timetable-table.css';
 
 /* Minimal reset — in the base layer so it overrides preflight but never Nuxt UI utilities */
 @layer base {

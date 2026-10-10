@@ -4,6 +4,7 @@
 - Timetable web app for the **Keighley & Worth Valley Railway** (KWVR).
 - Structure is **airline-style**: a search box → a result table → links. The result table differs from an airline's (train services, stations, heritage-railway specifics) — follow the Figma design, not airline conventions, where they diverge.
 - Data comes from a **single external API**. The API itself is **out of scope** — we only consume it.
+- Data flow: `TimetableSearchForm` emits `search` (criteria) → `useTimetableSearch` (owns the page state) → `GET /api/timetable/search` (our Nuxt server endpoint) → the external API. The external API doesn't exist yet, so the endpoint returns a dummy response, a whole timetable (`server/data/dummy-timetable-response.json`, the orange one: each call has a `time` and a `timeType` (`departure` / `arrival`), and trains and stations carry `notes` codes resolved through the `key`; typed by `TimetableApiResponse` in `app/types/timetableApi.ts`), and `getTrainServicesByCriteria` (`app/utils/timetableResponse.ts`) picks the trains leaving the searched station at or after the searched time, both ways, as result rows, each with its symbols (`notes`: the train's, then those of the stations it calls at from the origin on).
 - Must be **fast on desktop and mobile**.
 - **Accessibility first** — it is a requirement, not an afterthought.
 - **Unit tests only** (no e2e).
@@ -18,7 +19,7 @@
 - Pastel shades tell timetables apart (e.g. the tint marks alert rows).
 - Font: Gill Sans, from a local font stack only (no webfont files). SemiBold for headers, Regular for body.
 - Left-align long text; centre only short snippets.
-- **No icons yet** — they're still being confirmed. Use text labels (e.g. "Service alert") until the icon set is approved. Exceptions: built-in control affordances (the Select's chevron and ✓) and the footer social links, which use brand logos from Simple Icons (`@iconify-json/simple-icons`, CC0, bundled locally) with a visually hidden text name.
+- **No icons yet** — they're still being confirmed. Use text labels (e.g. "Service alert") until the icon set is approved. Exceptions: built-in control affordances (the Select's chevron and ✓) and the footer social links, which use brand logos from Simple Icons (`@iconify-json/simple-icons`, CC0, bundled locally) with a visually hidden text name, and the timetable key symbols (diesel, steam, bar, National Rail, Rail Story) from kwvr.co.uk's printed timetables, in `public/images/timetable-key/` as 96px WebP. Their paths, alt text (`label`) and meanings (`description`) come from the API response's `key`, never hard-coded. On hover a symbol shows its `label` in a tooltip (`TimetableNoteIcon`: `UPopover` in hover mode, the tooltip text `aria-hidden` because the alt text already says it).
 - Footer legal links have no underline (they sit in a labelled `<nav>`); they underline on hover like the main nav.
 
 ## Stack
@@ -42,21 +43,26 @@ app/
   app.config.ts        # site link data (nav, donate, legal, social, contact, organisation) — read via useAppConfig()
   assets/css/
     tokens.css         # design tokens: brand → semantic (components use semantic only) → Nuxt UI bridge (--ui-* mapped to semantic)
-    main.css           # @import tailwindcss → @nuxt/ui → tokens.css; reset in @layer base (after preflight);
+    main.css           # @import tailwindcss → @nuxt/ui → tokens.css → timetable-table.css; reset in @layer base (after preflight);
                        # unlayered: focus styles, .container, .button-primary, .surface-inverse, reduced-motion guard
+    timetable-table.css # non-scoped .timetable-table* classes: the look shared by the results and the journey's stops (portalled modal)
   components/          # PascalCase .vue files, auto-imported
     site/              # SiteHeader, SiteNav, SiteFooter
-    timetable/         # TimetableSearchHero, TimetableSearchForm, TimetableOriginSelect, TimetableDepartureDatePicker, TimetableDepartureTimeField, TimetableSearchFieldError, TimetableResults, TimetableResultRow, TimetableFirstUseState, TimetableLoadingState, TimetableResultsState, TimetableNoResultsState, TimetableErrorState
+    timetable/         # TimetableSearchHero, TimetableSearchForm, TimetableOriginSelect, TimetableDepartureDatePicker, TimetableDepartureTimeField, TimetableSearchFieldError, TimetableResults, TimetableResultJourneyButton, TimetableResultStationTime, TimetableResultInfo, TimetableNoteIcon, TimetableNoteList, TimetableResultsKey, TimetableJourneyModal, TimetableFirstUseState, TimetableLoadingState, TimetableResultsSkeleton, TimetableResultsState, TimetableNoResultsState, TimetableErrorState
     station/           # StationInfo, StationAttractions, StationAttractionCard, StationBento, StationBentoCard
-  composables/         # useXxx composables, auto-imported
+  composables/         # useXxx composables, auto-imported (useTimetableSearch: search → endpoint → page state; useResultRowsEntranceMotion)
   data/                # placeholderTimetable.ts: TEMPORARY placeholder data — replace with an API composable;
                        # stationHighlights.ts: site content (station card copy + photos from kwvr.co.uk), stays
   pages/               # file-based routes
   plugins/             # gsap.client.ts
   types/               # shared TypeScript types (import with `import type … from '~/types/…'`)
-  utils/               # pure helpers (formatting, parsing API data, departure prefill rules)
+  utils/               # pure helpers (formatting, API response → result rows, departure prefill rules, form values → search criteria)
+server/
+  api/                 # Nuxt server endpoints (Nitro): timetable/search.get.ts, the search box's endpoint
+  data/                # dummy-timetable-response.json: the endpoint's dummy answer (the orange timetable, train by train), server-only
 public/images/         # logo.svg, hero-train-45596.webp (hero original, 1536×512), station-card.jpg (exported from Figma),
-                       # stations/<station-id>.webp (station card originals, 1280px wide, from kwvr.co.uk)
+                       # stations/<station-id>.webp (station card originals, 1280px wide, from kwvr.co.uk),
+                       # timetable-key/<symbol>.webp (timetable key symbols, 96px, from kwvr.co.uk)
 test/
   setup.ts             # vitest-axe matchers
   fixtures/            # shared test data
@@ -71,14 +77,20 @@ The content area under the search box shows exactly one state, driven by `Timeta
 | Status | Component | When | Current status |
 |---|---|---|---|
 | `first-use` | `TimetableFirstUseState` | No search yet (Figma's "empty state"): "Or catch the next train from…" + `StationBento` | Done |
-| `loading` | `TimetableLoadingState` | Search sent, waiting for the API | Shell |
-| `results` | `TimetableResultsState` | API returned services; will compose `TimetableResults` + `StationInfo` + `StationAttractions` | Shell |
+| `loading` | `TimetableLoadingState` | Search sent, waiting for the API | Skeleton (UTable) |
+| `results` | `TimetableResultsState` | API returned services; will compose `TimetableResults` + `StationInfo` + `StationAttractions` | `TimetableResults` (a UTable, services from the dummy response; rows open the journey modal) + `TimetableResultsKey` |
 | `no-results` | `TimetableNoResultsState` | API returned nothing | Shell |
 | `error` | `TimetableErrorState` | The request failed | Shell |
 
 - First use: `StationBento` is Vue Bits' [MagicBento](https://vue-bits.dev/components/magic-bento) layout with every effect off (plain CSS, no GSAP; only the 2px hover lift is left). Each card is a stretched `<button>` inside an `<h3>`; choosing one calls the search form's exposed `searchNextTrainFromStation`, so the form shows the station, date and time searched (the next departure, by the prefill rule). Card photos sit under a scrim (`--colour-photo-scrim*`): white text only where it's at least 55% black.
+- Loading: a visually hidden "Departures" `<h2>` (the results' heading) and "Loading departures…", plus `TimetableResultsSkeleton`, which mirrors the results table's layout so nothing jumps when results arrive. The skeleton is `UTable` + `USkeleton` and is `aria-hidden` (USkeleton marks each block `role="alert"`).
+- Results: `TimetableResults` is a `UTable` (user's choice) with a screen-reader `caption` and `<th scope="col">` headers; cells are drawn by `#<column>-cell` slots (with `TimetableResultStationTime` and `TimetableResultInfo`), backgrounds, dividers and the outer rounded corners sit on the cells (a row can't take a radius), row classes (e.g. `has-service-alert`) go through the table's `meta.class.tr`. The table's look (`.timetable-table*` classes) lives in the non-scoped `assets/css/timetable-table.css`, shared with the journey's stops; only the column widths, the mobile card layout and the row hover stay scoped in `TimetableResults`. UTable's body cells are always `<td>`, so the origin is not a row header, and it can't take explicit table roles (kept by the old table for the mobile `display` changes).
+- Journey: each row is clickable through `TimetableResultJourneyButton`, a stretched `<button aria-haspopup="dialog">` in the origin cell (visually hidden "Journey details: Haworth 10:22 to Keighley 10:43"; its `::after` covers the row, the row is `position: relative`, and the focus ring sits inset on the `::after`). Not UTable's `@select`: that makes each `<tr tabindex="0">` with no role. On hover the row's cells take a darker background (`--colour-surface-alt-hover` / `--colour-surface-alert-hover`), the text untouched and no colour transition; never opacity on the cells (it would stack them above the hit area). The symbol icons sit above the hit area (`z-index: 1`) so their tooltips work; a click on one is handed to the row's button in script. The button opens `TimetableJourneyModal` (`UModal`): title "Haworth to Keighley", description "Departs … · 4 stops", a stops `UTable` (Station / Time, same classes as the results) from the boarding station to the end of the line (each result carries `calls`, with a "Request stop" text tag from the key's `x` and the station's symbols), then "About this journey" (only that train's symbols, plus the request-stop wording with its tag stacked above it). `TimetableResults` keeps the selected service after close (no empty leave transition) and returns focus to the row's button via `content.onCloseAutoFocus` (Safari doesn't focus buttons on click).
+- Entrance: `useResultRowsEntranceMotion` slides the body rows up into place, barely noticeable and with no fade (GSAP `from` y 8, 0.25s, `sine.out`, 0.075s stagger, `clearProps: 'transform'`) under `(prefers-reduced-motion: no-preference)` only. Never put a CSS `transition` on a property GSAP animates (it lags every frame); it replays on each new result set because the results state remounts `TimetableResults`.
+- Symbols: the Info cell shows each result's `notes` as 24px icons whose alt text is the note's `label`; `TimetableResultsKey` (under the table, in `TimetableResultsState`) lists the symbols those results use, each once, with the key's `description` and a decorative icon (`alt=""`), through `TimetableNoteList` (also used by the journey modal). The skeleton's info cell has a placeholder for the icon row.
+- Latest search wins: `useTimetableSearch` only writes an outcome if the state is still loading with the same criteria object (`searchState` is a `shallowRef`, so that's the raw object, not a proxy).
 - Substates belong in their variant of the union (e.g. an error `kind`), not in extra flags.
-- The `aria-live="polite"` summary (`.results-summary`) stays rendered in every state. Its text comes from the state, and it's empty on first use.
+- The `aria-live="polite"` summary (`.results-summary`) stays rendered in every state. Its text comes from the state: empty on first use, "Searching for departures from Haworth…" while loading, the count with results.
 
 ## Scripts
 | Command | Purpose |
@@ -101,7 +113,7 @@ The content area under the search box shows exactly one state, driven by `Timeta
 - No `console.log` (only `console.warn` / `console.error`).
 
 ## Accessibility rules (WCAG 2.2 AA)
-- Result tables use semantic markup: `<table>`, `<caption>`, `<thead>`/`<tbody>`, `<th scope="col">` / `<th scope="row">`. No div-tables.
+- Result tables use semantic markup: `<table>`, `<caption>`, `<thead>`/`<tbody>`, `<th scope="col">` (and `<th scope="row">` where the markup is ours; the results are a UTable, see Page states). No div-tables.
 - Every form control has a visible `<label>`; group related inputs with `<fieldset>`/`<legend>`.
 - Full keyboard operability; logical tab order; never remove focus outlines (use `:focus-visible`).
 - Colour contrast ≥ 4.5:1 for body text, ≥ 3:1 for large text and UI components. Never convey meaning by colour alone.
@@ -121,4 +133,4 @@ The content area under the search box shows exactly one state, driven by `Timeta
 - Unit tests only, in `test/unit/**/*.spec.ts`.
 - Use `mountSuspended` from `@nuxt/test-utils/runtime` for components needing Nuxt context.
 - Add an axe assertion to component specs: `expect(await axe(wrapper.html())).toHaveNoViolations()`.
-- Mock the external API — tests never hit the network.
+- Mock the external API — tests never hit the network. Mock our endpoint with `registerEndpoint` (`@nuxt/test-utils/runtime`); registrations for one URL pile up and the latest wins, so use `once: true` or call the returned unregister function (once only).

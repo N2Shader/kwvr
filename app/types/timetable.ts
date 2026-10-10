@@ -38,6 +38,33 @@ export interface TrainService {
   /** Intermediate stops; 0 means direct */
   stopCount: number
   hasServiceAlert: boolean
+  /** The train's symbols (diesel, steam, bar) and those of the stations it calls at from the origin on */
+  notes: TrainServiceNote[]
+  /** The journey's stops, from the searched station to the last */
+  calls: TrainServiceCall[]
+}
+
+/** One stop of a result's journey, from the searched station to the last */
+export interface TrainServiceCall {
+  station: Station
+  /** Local ISO date-time without offset, e.g. `2026-04-24T12:20` */
+  time: string
+  timeType: 'departure' | 'arrival'
+  /** The key's `x` wording when the train only stops on request (Damems); undefined otherwise */
+  requestStopDescription?: string
+  /** The station's symbols (e.g. Rail Story at Ingrow West) */
+  notes: TrainServiceNote[]
+}
+
+/** A timetable symbol on a result, from the response's key */
+export interface TrainServiceNote {
+  code: string
+  /** Short, for the icon's alt text, e.g. "Diesel train" */
+  label: string
+  /** The key's full wording, for the key under the results */
+  description: string
+  /** Path under /public */
+  iconSrc: string
 }
 
 /** What the content area under the search box shows; one component per status */

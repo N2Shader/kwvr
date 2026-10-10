@@ -22,15 +22,11 @@ const mountSearchForm = async () => {
 
 // The same call the page makes when a station card under the search box is chosen
 describe('TimetableSearchForm next train from a station', () => {
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>
-
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    consoleLogSpy.mockRestore()
     vi.useRealTimers()
     document.body.innerHTML = ''
   })
@@ -42,8 +38,7 @@ describe('TimetableSearchForm next train from a station', () => {
     await flushPromises()
 
     expect(wrapper.findComponent(TimetableOriginSelect).props('modelValue')).toBe('haworth')
-    expect(consoleLogSpy).toHaveBeenCalledTimes(1)
-    expect(consoleLogSpy).toHaveBeenCalledWith('Search train times', { originId: 'haworth', departingDate: '2026-10-09', departingTime: '14:30:00' })
+    expect(wrapper.emitted('search')).toEqual([[{ origin: haworthFixture, departingAfter: '2026-10-09T14:30' }]])
 
     wrapper.unmount()
   })
@@ -57,7 +52,7 @@ describe('TimetableSearchForm next train from a station', () => {
     wrapper.vm.searchNextTrainFromStation(keighleyFixture)
     await flushPromises()
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('Search train times', { originId: 'keighley', departingDate: '2026-10-09', departingTime: '14:30:00' })
+    expect(wrapper.emitted('search')).toEqual([[{ origin: keighleyFixture, departingAfter: '2026-10-09T14:30' }]])
 
     wrapper.unmount()
   })
@@ -69,7 +64,7 @@ describe('TimetableSearchForm next train from a station', () => {
     wrapper.vm.searchNextTrainFromStation(haworthFixture)
     await flushPromises()
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('Search train times', { originId: 'haworth', departingDate: '2026-10-10', departingTime: '09:00:00' })
+    expect(wrapper.emitted('search')).toEqual([[{ origin: haworthFixture, departingAfter: '2026-10-10T09:00' }]])
 
     wrapper.unmount()
   })

@@ -1,0 +1,74 @@
+/*
+ * The timetable tables' shared look: the results (TimetableResults) and a journey's stops
+ * (TimetableJourneyModal). Non-scoped, because the modal is portalled out of any scoped ancestor.
+ * The classes go on UTable through `:ui` (table, headers, separator) and `meta` (rows, cells).
+ * Unlayered, so they beat Nuxt UI's utilities. TimetableResultsSkeleton mirrors these values.
+ */
+
+/*
+ * The rows sit flush against each other, as one block. Separate borders with no spacing, because
+ * a collapsed table ignores border-radius on its cells.
+ */
+.timetable-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Replaces UTable's small header text (and its line height) */
+.timetable-table-head-cell {
+  /* The bottom padding is the only gap: between the headers and the first row */
+  padding: 0 var(--space-4) var(--space-3);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-base);
+}
+
+/* UTable's line under the headers */
+.timetable-table-separator {
+  display: none;
+}
+
+/* Replaces UTable's row divider with our own, on the cells below */
+.timetable-table-row {
+  border: 0;
+}
+
+/*
+ * Replaces UTable's `p-4 text-sm whitespace-nowrap`. Background and divider on the cells, not the row:
+ * the corners below are cell corners.
+ */
+.timetable-table-cell {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  white-space: normal;
+  vertical-align: middle;
+  background-color: var(--colour-surface-alt);
+}
+
+.timetable-table-row.has-service-alert .timetable-table-cell {
+  background-color: var(--colour-surface-alert);
+}
+
+/* A faint line under each row but the last, to tell the rows apart */
+.timetable-table-row:not(:last-child) .timetable-table-cell {
+  border-bottom: 1px solid var(--colour-border-subtle);
+}
+
+/* Rounded like the search box: the first row's top corners and the last row's bottom corners */
+.timetable-table-row:first-child .timetable-table-cell:first-child {
+  border-top-left-radius: var(--radius-sm);
+}
+
+.timetable-table-row:first-child .timetable-table-cell:last-child {
+  border-top-right-radius: var(--radius-sm);
+}
+
+.timetable-table-row:last-child .timetable-table-cell:first-child {
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.timetable-table-row:last-child .timetable-table-cell:last-child {
+  border-bottom-right-radius: var(--radius-sm);
+}

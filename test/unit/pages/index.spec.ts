@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { flushPromises } from '@vue/test-utils'
+import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { axe } from 'vitest-axe'
 import IndexPage from '~/pages/index.vue'
+import type { TimetableApiResponse } from '~/types/timetableApi'
+import { timetableResponseFixture } from '../../fixtures/timetableFixtures'
 
-// The page starts on the first-use state until search is wired up.
-// The results table itself is covered by TimetableResults.spec.ts.
+// The page starts on the first-use state; a search goes through loading to the results.
+// The results table itself is covered by TimetableResults.spec.ts, the search flow by useTimetableSearch.spec.ts.
 describe('Index page', () => {
   it('has a single h1 and the search form', async () => {
     const wrapper = await mountSuspended(IndexPage, { route: '/' })
@@ -34,20 +35,40 @@ describe('Index page', () => {
     expect(resultsSummary.text()).toBe('')
   })
 
-  it('searches for the next train from a station card through the search form', async () => {
+  it('searches for the next train from a station card, shows the loading state, then the results', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date(2026, 9, 9, 14, 30))
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.setSystemTime(new Date(2026, 9, 9, 11, 30))
+    // The endpoint holds its answer until the test releases it, so the loading state can be checked first.
+    // `once`, because registrations for the same URL pile up across tests.
+    let searchQuery: Record<string, string> = {}
+    let answerTimetableSearch = () => {}
+    const heldAnswer = new Promise<TimetableApiResponse>((resolve) => {
+      answerTimetableSearch = () => resolve(timetableResponseFixture)
+    })
+    registerEndpoint('/api/timetable/search', {
+      handler: (event) => {
+        searchQuery = Object.fromEntries(new URL(event.path, 'http://localhost').searchParams)
+        return heldAnswer
+      },
+      once: true,
+    })
     // Attached to the document so the form can submit itself
     const wrapper = await mountSuspended(IndexPage, { route: '/', attachTo: document.body })
 
     await wrapper.get('.first-use-state li:nth-child(5) button').trigger('click')
-    await flushPromises()
+    await vi.waitFor(() => expect(searchQuery).toEqual({ originId: 'haworth', departingAfter: '2026-10-09T11:30' }))
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('Search train times', { originId: 'haworth', departingDate: '2026-10-09', departingTime: '14:30:00' })
+    expect(wrapper.find('.loading-state').exists()).toBe(true)
+    expect(wrapper.find('.first-use-state').exists()).toBe(false)
+    expect(wrapper.find('.results-summary').text()).toBe('Searching for departures from Haworth…')
+
+    answerTimetableSearch()
+    await vi.waitFor(() => expect(wrapper.find('.timetable-results table').exists()).toBe(true))
+
+    expect(wrapper.find('.loading-state').exists()).toBe(false)
+    expect(wrapper.find('.results-summary').text()).toBe('2 services found')
 
     wrapper.unmount()
-    consoleLogSpy.mockRestore()
     vi.useRealTimers()
   })
 

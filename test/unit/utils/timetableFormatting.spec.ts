@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { formatClockTime, formatLongDate, formatResultsSummary, formatShortDate, formatStopCount, formatTimeOfDay } from '~/utils/timetableFormatting'
+import { formatClockTime, formatJourneySummary, formatLongDate, formatResultsSummary, formatSearchingSummary, formatShortDate, formatStopCount, formatTimeOfDay } from '~/utils/timetableFormatting'
+import { haworthFixture, keighleyFixture } from '../../fixtures/timetableFixtures'
 
 describe('formatStopCount', () => {
   it('describes zero stops as direct', () => {
@@ -49,6 +50,12 @@ describe('formatResultsSummary', () => {
   })
 })
 
+describe('formatSearchingSummary', () => {
+  it('names the station being searched from', () => {
+    expect(formatSearchingSummary('Haworth')).toBe('Searching for departures from Haworth…')
+  })
+})
+
 describe('formatShortDate', () => {
   it('formats a calendar date with a short weekday and month', () => {
     expect(formatShortDate({ year: 2026, month: 10, day: 9 })).toBe('Fri, 9 Oct 2026')
@@ -62,5 +69,13 @@ describe('formatTimeOfDay', () => {
 
   it('keeps two-digit values as they are', () => {
     expect(formatTimeOfDay({ hour: 14, minute: 30 })).toBe('14:30')
+  })
+})
+
+describe('formatJourneySummary', () => {
+  it('names both ends of the journey with their times', () => {
+    const journey = { origin: haworthFixture, destination: keighleyFixture, departsAt: '2026-10-10T10:22', arrivesAt: '2026-10-10T10:43' }
+
+    expect(formatJourneySummary(journey)).toBe('Haworth 10:22 to Keighley 10:43')
   })
 })
