@@ -40,27 +40,46 @@ const timetableSearchForm = useTemplateRef<{ searchNextTrainFromStation: (statio
       {{ resultsSummary }}
     </p>
 
-    <TimetableFirstUseState
-      v-if="searchState.status === 'first-use'"
-      :station-highlights="stationHighlights"
-      @select-station="timetableSearchForm?.searchNextTrainFromStation($event)"
-    />
-    <TimetableLoadingState v-else-if="searchState.status === 'loading'" />
-    <TimetableResultsState
-      v-else-if="searchState.status === 'results'"
-      :criteria="searchState.criteria"
-      :services="searchState.services"
-    />
-    <TimetableNoResultsState v-else-if="searchState.status === 'no-results'" />
-    <TimetableErrorState v-else />
+    <!-- One state at a time, in an area that never gets shorter than the screen (see the styles) -->
+    <div class="timetable-page-content">
+      <TimetableFirstUseState
+        v-if="searchState.status === 'first-use'"
+        :station-highlights="stationHighlights"
+        @select-station="timetableSearchForm?.searchNextTrainFromStation($event)"
+      />
+      <TimetableLoadingState
+        v-else-if="searchState.status === 'loading'"
+        :criteria="searchState.criteria"
+      />
+      <TimetableResultsState
+        v-else-if="searchState.status === 'results'"
+        :criteria="searchState.criteria"
+        :services="searchState.services"
+      />
+      <TimetableNoResultsState v-else-if="searchState.status === 'no-results'" />
+      <TimetableErrorState v-else />
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* Passes the remaining height down, so the first-use state can fill it */
+/* Passes the remaining height down, so the content area can fill it */
 .timetable-page {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+/*
+ * At least one screen tall in every state, so swapping states (e.g. the tall station bento for the
+ * shorter loading skeleton) never pulls the footer up into view. svh, so the mobile URL bar showing
+ * or hiding doesn't resize it. The first-use state grows to fill it (cream).
+ */
+.timetable-page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
 }
 </style>

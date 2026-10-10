@@ -4,7 +4,7 @@ const { contact, legalLinks, organisation, socialLinks } = useAppConfig()
 
 <template>
   <footer class="site-footer">
-    <div class="footer-organisation surface-inverse">
+    <UContainer class="footer-organisation surface-inverse">
       <p class="footer-organisation-name">
         &copy; {{ organisation.name }}
       </p>
@@ -15,10 +15,10 @@ const { contact, legalLinks, organisation, socialLinks } = useAppConfig()
         <p>Telephone: <a :href="contact.telephone.href">{{ contact.telephone.label }}</a></p>
         <p>Email: <a :href="contact.email.href">{{ contact.email.label }}</a></p>
       </address>
-    </div>
+    </UContainer>
 
     <div class="footer-links surface-inverse">
-      <div class="footer-links-inner container">
+      <UContainer class="footer-links-inner">
         <nav aria-label="Legal">
           <ul class="footer-link-list legal-list">
             <li
@@ -50,14 +50,15 @@ const { contact, legalLinks, organisation, socialLinks } = useAppConfig()
             </a>
           </li>
         </ul>
-      </div>
+      </UContainer>
     </div>
   </footer>
 </template>
 
 <style scoped>
+/* Block padding only: the inline gutters are UContainer's, so the text lines up with the page */
 .footer-organisation {
-  padding: var(--space-6) var(--space-4) var(--space-4);
+  padding-block: var(--space-6) var(--space-4);
   text-align: center;
   background-color: var(--colour-primary);
 }
@@ -144,6 +145,14 @@ const { contact, legalLinks, organisation, socialLinks } = useAppConfig()
 .social-link :deep(.social-icon) {
   width: var(--space-5);
   height: var(--space-5);
+  transition: transform var(--duration-fast) ease;
+}
+
+/* Grows a little on hover. Pointer devices only; the global reduced-motion guard drops the transition */
+@media (hover: hover) {
+  .social-link:hover :deep(.social-icon) {
+    transform: scale(1.1);
+  }
 }
 
 /* Visual "-" separator, hidden from assistive tech (second declaration is the alt-text form) */

@@ -17,8 +17,9 @@ const modalTitle = computed(() => props.service ? `${props.service.origin.name} 
 
 const modalDescription = computed(() => {
   if (!props.service) return ''
-  const { departsAt, stopCount } = props.service
-  return `Departs ${formatClockTime(departsAt)} on ${formatLongDate(departsAt)} · ${formatStopCount(stopCount)}`
+  const { departsAt, stopCount, isLastTrain } = props.service
+  const journeyDescription = `Departs ${formatClockTime(departsAt)} on ${formatLongDate(departsAt)} · ${formatStopCount(stopCount)}`
+  return isLastTrain ? `${journeyDescription} · Last train` : journeyDescription
 })
 
 const notesHeadingId = useId()

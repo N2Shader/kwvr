@@ -50,9 +50,12 @@
   --colour-surface: var(--colour-white);
   --colour-surface-alt: var(--colour-cream);
   --colour-surface-alert: var(--colour-burgundy-tint);
-  /* Result rows on hover: cream and the alert tint, each a step darker (10% brand grey) */
+  /* The last train's row: the same gentle tint for now, its own token so the two can part */
+  --colour-surface-last-train: var(--colour-burgundy-tint);
+  /* Result rows on hover: cream and the tints, each a step darker (10% brand grey) */
   --colour-surface-alt-hover: color-mix(in srgb, var(--colour-grey) 10%, var(--colour-cream));
   --colour-surface-alert-hover: color-mix(in srgb, var(--colour-grey) 10%, var(--colour-burgundy-tint));
+  --colour-surface-last-train-hover: color-mix(in srgb, var(--colour-grey) 10%, var(--colour-burgundy-tint));
   --colour-surface-inverse: var(--colour-grey);
   /* Translucent shade laid over the hero photo, so the search card stands out */
   --colour-hero-shade: color-mix(in srgb, var(--colour-black) 35%, transparent);
@@ -116,8 +119,8 @@
   --line-height-tight: 1.25;
   --line-height-base: 1.5;
 
-  /* Layout */
-  --layout-max-width: 72rem;
+  /* Layout: the boxed site's width (UContainer, through --ui-container below), centred on wider screens */
+  --layout-max-width: 80rem;
   --hero-min-height: clamp(13rem, 35vw, 30rem);
 
   /* Shape & motion */
@@ -155,4 +158,6 @@
   --ui-border-inverted: var(--colour-text-inverse);
 
   --ui-radius: var(--radius-sm);
+  /* UContainer's max width: the site frame and every content column inside it */
+  --ui-container: var(--layout-max-width);
 }

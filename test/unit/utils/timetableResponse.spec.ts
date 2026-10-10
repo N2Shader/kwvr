@@ -7,6 +7,7 @@ import {
   haworthFixture,
   ingrowWestFixture,
   keighleyFixture,
+  lastTrainNoteFixture,
   nationalRailNoteFixture,
   oxenhopeFixture,
   railStoryNoteFixture,
@@ -33,8 +34,8 @@ describe('getTrainServicesByCriteria', () => {
     const trainServices = getTrainServicesByCriteria(timetableResponseFixture, { origin: haworthFixture, departingAfter: '2026-10-09T12:00' })
 
     expect(trainServices).toEqual([
-      { id: 'fixture-keighley-1200', origin: haworthFixture, destination: oxenhopeFixture, departsAt: '2026-10-09T12:15', arrivesAt: '2026-10-09T12:20', stopCount: 0, hasServiceAlert: false, notes: [dieselNoteFixture], calls: haworthToOxenhopeCalls },
-      { id: 'fixture-oxenhope-1330', origin: haworthFixture, destination: keighleyFixture, departsAt: '2026-10-09T13:35', arrivesAt: '2026-10-09T13:50', stopCount: 2, hasServiceAlert: false, notes: [steamNoteFixture, barNoteFixture, railStoryNoteFixture, nationalRailNoteFixture], calls: haworthToKeighleyCalls },
+      { id: 'fixture-keighley-1200', origin: haworthFixture, destination: oxenhopeFixture, departsAt: '2026-10-09T12:15', arrivesAt: '2026-10-09T12:20', stopCount: 0, hasServiceAlert: false, isLastTrain: true, notes: [lastTrainNoteFixture, dieselNoteFixture], calls: haworthToOxenhopeCalls },
+      { id: 'fixture-oxenhope-1330', origin: haworthFixture, destination: keighleyFixture, departsAt: '2026-10-09T13:35', arrivesAt: '2026-10-09T13:50', stopCount: 2, hasServiceAlert: false, isLastTrain: true, notes: [lastTrainNoteFixture, steamNoteFixture, barNoteFixture, railStoryNoteFixture, nationalRailNoteFixture], calls: haworthToKeighleyCalls },
     ])
   })
 
@@ -71,7 +72,27 @@ describe('getTrainServicesByCriteria', () => {
   it('leaves out the symbols of stations before the origin', () => {
     const [trainService] = getTrainServicesByCriteria(timetableResponseFixture, { origin: haworthFixture, departingAfter: '2026-10-09T12:00' })
 
-    expect(trainService?.notes).toEqual([dieselNoteFixture])
+    expect(trainService?.notes).toEqual([lastTrainNoteFixture, dieselNoteFixture])
+  })
+
+  it('marks only the latest departure each way as the last train', () => {
+    const trainServices = getTrainServicesByCriteria(timetableResponseFixture, { origin: haworthFixture, departingAfter: '2026-10-09T10:00' })
+
+    // The 11:05 and 13:35 towards Keighley, and the 12:15, the only departure towards Oxenhope
+    expect(trainServices.map(trainService => [trainService.id, trainService.isLastTrain])).toEqual([
+      ['fixture-oxenhope-1100', false],
+      ['fixture-keighley-1200', true],
+      ['fixture-oxenhope-1330', true],
+    ])
+  })
+
+  it('puts the last train symbol before the train and station symbols', () => {
+    const trainServices = getTrainServicesByCriteria(timetableResponseFixture, { origin: keighleyFixture, departingAfter: '2026-10-09T10:00' })
+
+    expect(trainServices.map(trainService => trainService.notes)).toEqual([
+      [dieselNoteFixture, nationalRailNoteFixture, railStoryNoteFixture],
+      [lastTrainNoteFixture, dieselNoteFixture, nationalRailNoteFixture, railStoryNoteFixture],
+    ])
   })
 
   it('lists the journey’s stops from the searched station to the last, dated on the searched day', () => {

@@ -8,7 +8,10 @@ defineProps<{
 </script>
 
 <template>
-  <section class="station-attractions container">
+  <UContainer
+    as="section"
+    class="station-attractions"
+  >
     <h2 class="visually-hidden">
       Things to see near {{ stationName }}
     </h2>
@@ -20,7 +23,7 @@ defineProps<{
         <StationAttractionCard :attraction="attraction" />
       </li>
     </ul>
-  </section>
+  </UContainer>
 </template>
 
 <style scoped>

@@ -6,7 +6,10 @@ const logoSrc = '/images/logo.svg'
 </script>
 
 <template>
-  <header class="site-header">
+  <UContainer
+    as="header"
+    class="site-header"
+  >
     <a
       :href="homeHref"
       class="site-logo-link"
@@ -20,18 +23,21 @@ const logoSrc = '/images/logo.svg'
       >
     </a>
     <SiteNav class="site-header-nav" />
-  </header>
+  </UContainer>
 </template>
 
 <style scoped>
-/* Mobile first: logo centred, hamburger on the right; the open menu is positioned against the header */
+/*
+ * Mobile first: logo centred, hamburger on the right; the open menu is positioned against the header.
+ * Block padding only: the inline gutters are UContainer's, so the logo lines up with the page's content.
+ */
 .site-header {
   position: relative;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding-block: var(--space-4);
   background-color: var(--colour-surface);
 }
 

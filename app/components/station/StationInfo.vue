@@ -7,7 +7,10 @@ defineProps<{
 </script>
 
 <template>
-  <section class="station-info container">
+  <UContainer
+    as="section"
+    class="station-info"
+  >
     <div class="station-info-text">
       <h2 class="station-info-heading">
         {{ details.station.name }} Station
@@ -18,7 +21,7 @@ defineProps<{
     <div class="station-map">
       <p>Map coming soon</p>
     </div>
-  </section>
+  </UContainer>
 </template>
 
 <style scoped>

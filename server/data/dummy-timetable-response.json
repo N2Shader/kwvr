@@ -791,6 +791,12 @@
       "label": "Diesel train",
       "description": "Diesel Train",
       "icon": "/images/timetable-key/diesel.webp"
+    },
+    {
+      "code": "last-train",
+      "label": "Last train",
+      "description": "Last train of the day from this station in this direction",
+      "icon": "/images/timetable-key/last-train.webp"
     }
   ]
 }

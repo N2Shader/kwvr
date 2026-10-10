@@ -9,6 +9,8 @@ const heroMobileMedia = '(max-width: 47.99rem)'
 const heroDesktopMedia = '(min-width: 48rem)'
 const heroMobileWidths = [320, 512]
 const heroDesktopWidths = [768, 1024, 1536]
+// The site is boxed at 80rem (UContainer), so the photo never gets wider than that
+const heroDesktopSizes = '(min-width: 80rem) 80rem, 100vw'
 
 const imageUrlBuilder = useImage()
 
@@ -27,7 +29,7 @@ const heroDesktopSrcset = buildHeroDesktopSrcset()
 useHead({
   link: [
     { rel: 'preload', as: 'image', type: 'image/webp', imagesrcset: heroMobileSrcset, imagesizes: '100vw', media: heroMobileMedia, fetchpriority: 'high' },
-    { rel: 'preload', as: 'image', type: 'image/webp', imagesrcset: heroDesktopSrcset, imagesizes: '100vw', media: heroDesktopMedia, fetchpriority: 'high' },
+    { rel: 'preload', as: 'image', type: 'image/webp', imagesrcset: heroDesktopSrcset, imagesizes: heroDesktopSizes, media: heroDesktopMedia, fetchpriority: 'high' },
   ],
 })
 </script>
@@ -47,7 +49,7 @@ useHead({
       <img
         :src="imageUrlBuilder(heroImageSrc, { width: 1536, format: 'webp' })"
         :srcset="heroDesktopSrcset"
-        sizes="100vw"
+        :sizes="heroDesktopSizes"
         alt=""
         width="1536"
         height="512"

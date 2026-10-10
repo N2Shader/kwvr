@@ -18,7 +18,7 @@ const headingId = useId()
     :aria-labelledby="headingId"
   >
     <!-- No search yet: the search box above, or one tap for the next train from a station -->
-    <div class="container">
+    <UContainer>
       <h2
         :id="headingId"
         class="first-use-state-heading"
@@ -29,16 +29,18 @@ const headingId = useId()
         :highlights="stationHighlights"
         @select-station="emit('select-station', $event)"
       />
-    </div>
+    </UContainer>
   </section>
 </template>
 
 <style scoped>
 .first-use-state {
-  /* Grows to fill the viewport on tall screens */
+  /* Grows to fill the page's content area (at least one screen tall) */
   flex: 1;
   padding-block: var(--space-6) var(--space-8);
   background-color: var(--colour-surface-alt);
+  /* The bento cards start outside their grid (useStationBentoEntranceMotion): never a sideways scroll */
+  overflow-x: clip;
 }
 
 .first-use-state-heading {

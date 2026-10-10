@@ -23,7 +23,7 @@ const openJourney = (event: MouseEvent) => {
     class="result-journey-button"
     @click="openJourney"
   >
-    <span class="visually-hidden">Journey details: {{ formatJourneySummary(service) }}</span>
+    <span class="visually-hidden">Journey details: {{ formatJourneySummary(service) }}{{ service.isLastTrain ? ', last train' : '' }}</span>
   </button>
 </template>
 

@@ -14,9 +14,10 @@ const headingId = useId()
 </script>
 
 <template>
-  <section
+  <UContainer
     v-if="keyNotes.length > 0"
-    class="results-key container"
+    as="section"
+    class="results-key"
     :aria-labelledby="headingId"
   >
     <h3
@@ -26,7 +27,7 @@ const headingId = useId()
       Key
     </h3>
     <TimetableNoteList :notes="keyNotes" />
-  </section>
+  </UContainer>
 </template>
 
 <style scoped>

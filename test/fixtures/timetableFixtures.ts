@@ -21,6 +21,7 @@ export const steamNoteFixture: TrainServiceNote = { code: 'steam', label: 'Steam
 export const barNoteFixture: TrainServiceNote = { code: 'bar', label: 'Real Ale Bar Car', description: 'This train includes a Real Ale Bar Car.', iconSrc: '/images/timetable-key/bar.webp' }
 export const railStoryNoteFixture: TrainServiceNote = { code: 'rail-story', label: 'Rail Story museums at Ingrow', description: 'Alight at Ingrow for “Rail Story” museums & exhibitions.', iconSrc: '/images/timetable-key/rail-story.webp' }
 export const nationalRailNoteFixture: TrainServiceNote = { code: 'national-rail-connection', label: 'National Rail connections', description: 'Connections with National Rail services.', iconSrc: '/images/timetable-key/national-rail.webp' }
+export const lastTrainNoteFixture: TrainServiceNote = { code: 'last-train', label: 'Last train', description: 'Last train of the day from this station in this direction', iconSrc: '/images/timetable-key/last-train.webp' }
 
 // The key's `x` wording, as a request stop reaches a journey's stops
 export const requestStopDescriptionFixture = 'Request Stop'
@@ -39,6 +40,11 @@ const haworthToOxenhopeCallsFixture: TrainServiceCall[] = [
   { station: oxenhopeFixture, time: '2026-04-24T14:00', timeType: 'arrival', notes: [] },
 ]
 
+const haworthToOxenhopeLastCallsFixture: TrainServiceCall[] = [
+  { station: haworthFixture, time: '2026-04-24T17:20', timeType: 'departure', notes: [] },
+  { station: oxenhopeFixture, time: '2026-04-24T17:30', timeType: 'arrival', notes: [] },
+]
+
 const haworthToKeighleyLateCallsFixture: TrainServiceCall[] = [
   { station: haworthFixture, time: '2026-04-24T16:20', timeType: 'departure', notes: [] },
   { station: ingrowWestFixture, time: '2026-04-24T16:42', timeType: 'departure', notes: [] },
@@ -46,9 +52,11 @@ const haworthToKeighleyLateCallsFixture: TrainServiceCall[] = [
 ]
 
 export const servicesFixture: TrainService[] = [
-  { id: 'fixture-1220', origin: haworthFixture, destination: keighleyFixture, departsAt: '2026-04-24T12:20', arrivesAt: '2026-04-24T13:00', stopCount: 3, hasServiceAlert: false, notes: [dieselNoteFixture, railStoryNoteFixture, nationalRailNoteFixture], calls: haworthToKeighleyCallsFixture },
-  { id: 'fixture-1320', origin: haworthFixture, destination: oxenhopeFixture, departsAt: '2026-04-24T13:20', arrivesAt: '2026-04-24T14:00', stopCount: 0, hasServiceAlert: false, notes: [], calls: haworthToOxenhopeCallsFixture },
-  { id: 'fixture-1620', origin: haworthFixture, destination: keighleyFixture, departsAt: '2026-04-24T16:20', arrivesAt: '2026-04-24T17:00', stopCount: 1, hasServiceAlert: true, notes: [steamNoteFixture, barNoteFixture, dieselNoteFixture], calls: haworthToKeighleyLateCallsFixture },
+  { id: 'fixture-1220', origin: haworthFixture, destination: keighleyFixture, departsAt: '2026-04-24T12:20', arrivesAt: '2026-04-24T13:00', stopCount: 3, hasServiceAlert: false, isLastTrain: false, notes: [dieselNoteFixture, railStoryNoteFixture, nationalRailNoteFixture], calls: haworthToKeighleyCallsFixture },
+  { id: 'fixture-1320', origin: haworthFixture, destination: oxenhopeFixture, departsAt: '2026-04-24T13:20', arrivesAt: '2026-04-24T14:00', stopCount: 0, hasServiceAlert: false, isLastTrain: false, notes: [], calls: haworthToOxenhopeCallsFixture },
+  { id: 'fixture-1620', origin: haworthFixture, destination: keighleyFixture, departsAt: '2026-04-24T16:20', arrivesAt: '2026-04-24T17:00', stopCount: 1, hasServiceAlert: true, isLastTrain: false, notes: [steamNoteFixture, barNoteFixture, dieselNoteFixture], calls: haworthToKeighleyLateCallsFixture },
+  // The last train towards Oxenhope: its row is tinted and its symbol comes first
+  { id: 'fixture-1720', origin: haworthFixture, destination: oxenhopeFixture, departsAt: '2026-04-24T17:20', arrivesAt: '2026-04-24T17:30', stopCount: 0, hasServiceAlert: false, isLastTrain: true, notes: [lastTrainNoteFixture, steamNoteFixture], calls: haworthToOxenhopeLastCallsFixture },
 ]
 
 // The key's symbols in the response's shape, built from the note fixtures so the two can't drift apart
@@ -133,5 +141,6 @@ export const timetableResponseFixture: TimetableApiResponse = {
     toKeyEntry(barNoteFixture),
     toKeyEntry(steamNoteFixture),
     toKeyEntry(dieselNoteFixture),
+    toKeyEntry(lastTrainNoteFixture),
   ],
 }

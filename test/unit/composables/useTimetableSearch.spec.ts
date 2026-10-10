@@ -139,4 +139,85 @@ describe('useTimetableSearch', () => {
       services: getTrainServicesByCriteria(timetableResponseFixture, keighleyCriteria),
     })
   })
+
+  // The form builds new criteria on every submit, so a repeat is an equal copy, never the same object
+  const copySearchCriteria = (criteria: TimetableSearchCriteria): TimetableSearchCriteria =>
+    ({ origin: { ...criteria.origin }, departingAfter: criteria.departingAfter })
+
+  it('doesn\'t send the search on screen again', async () => {
+    const heldRequests = holdTimetableRequests()
+    const { searchState, searchTimetableByCriteria } = useTimetableSearch()
+
+    const searchDone = searchTimetableByCriteria(searchCriteriaFixture)
+    const heldRequest = await waitForHeldRequest(heldRequests, 0)
+    heldRequest.answer()
+    await searchDone
+    const resultsState = searchState.value
+
+    // A repeat that went out would hang on the held endpoint, so this await only ends if it was skipped
+    await searchTimetableByCriteria(copySearchCriteria(searchCriteriaFixture))
+
+    expect(heldRequests).toHaveLength(1)
+    expect(searchState.value).toBe(resultsState)
+  })
+
+  it('doesn\'t send the search still loading again', async () => {
+    const heldRequests = holdTimetableRequests()
+    const { searchState, searchTimetableByCriteria } = useTimetableSearch()
+
+    const searchDone = searchTimetableByCriteria(searchCriteriaFixture)
+    const heldRequest = await waitForHeldRequest(heldRequests, 0)
+    const loadingState = searchState.value
+
+    await searchTimetableByCriteria(copySearchCriteria(searchCriteriaFixture))
+
+    expect(heldRequests).toHaveLength(1)
+    expect(searchState.value).toBe(loadingState)
+
+    heldRequest.answer()
+    await searchDone
+
+    expect(searchState.value.status).toBe('results')
+  })
+
+  it('sends the same search again after an error, as the retry', async () => {
+    const heldRequests = holdTimetableRequests()
+    const { searchState, searchTimetableByCriteria } = useTimetableSearch()
+
+    const failedSearchDone = searchTimetableByCriteria(searchCriteriaFixture)
+    const failedRequest = await waitForHeldRequest(heldRequests, 0)
+    failedRequest.fail()
+    await failedSearchDone
+
+    const retryCriteria = copySearchCriteria(searchCriteriaFixture)
+    const retryDone = searchTimetableByCriteria(retryCriteria)
+    const retryRequest = await waitForHeldRequest(heldRequests, 1)
+
+    expect(searchState.value).toEqual({ status: 'loading', criteria: retryCriteria })
+
+    retryRequest.answer()
+    await retryDone
+
+    expect(searchState.value.status).toBe('results')
+  })
+
+  it('still searches the same station at a different time', async () => {
+    const heldRequests = holdTimetableRequests()
+    const { searchState, searchTimetableByCriteria } = useTimetableSearch()
+
+    const firstSearchDone = searchTimetableByCriteria(searchCriteriaFixture)
+    const firstRequest = await waitForHeldRequest(heldRequests, 0)
+    firstRequest.answer()
+    await firstSearchDone
+
+    const laterCriteria: TimetableSearchCriteria = { origin: searchCriteriaFixture.origin, departingAfter: '2026-04-24T14:00' }
+    const laterSearchDone = searchTimetableByCriteria(laterCriteria)
+    const laterRequest = await waitForHeldRequest(heldRequests, 1)
+
+    expect(laterRequest.query).toEqual({ originId: 'haworth', departingAfter: '2026-04-24T14:00' })
+    expect(searchState.value).toEqual({ status: 'loading', criteria: laterCriteria })
+
+    laterRequest.answer()
+    await laterSearchDone
+  })
 })

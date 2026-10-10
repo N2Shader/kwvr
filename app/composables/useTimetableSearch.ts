@@ -5,6 +5,7 @@ import type { TimetableApiResponse } from '~/types/timetableApi'
  * Runs a search for the page: the search box's criteria go to our endpoint (/api/timetable/search),
  * which will call the external timetable API, and the answer becomes the page state.
  * The latest search wins: an earlier request that answers late is ignored.
+ * A search already on screen (or still loading) isn't sent again; one that failed is.
  */
 export const useTimetableSearch = () => {
   // Shallow: the state is replaced whole, never changed in place, so `criteria` stays the very object
@@ -15,7 +16,15 @@ export const useTimetableSearch = () => {
   const isLatestSearch = (criteria: TimetableSearchCriteria) =>
     searchState.value.status === 'loading' && searchState.value.criteria === criteria
 
+  // The same station, date and time as the search loading or shown (after an error, a repeat is the retry)
+  const isSearchOnScreen = (criteria: TimetableSearchCriteria) =>
+    searchState.value.status !== 'first-use'
+    && searchState.value.status !== 'error'
+    && isSameSearchCriteria(searchState.value.criteria, criteria)
+
   const searchTimetableByCriteria = async (criteria: TimetableSearchCriteria) => {
+    if (isSearchOnScreen(criteria)) return
+
     searchState.value = { status: 'loading', criteria }
 
     try {

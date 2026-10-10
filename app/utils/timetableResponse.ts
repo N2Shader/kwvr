@@ -1,7 +1,10 @@
 import type { TimetableSearchCriteria, TrainService, TrainServiceCall, TrainServiceNote } from '~/types/timetable'
-import type { TimetableApiCall, TimetableApiResponse, TimetableApiService } from '~/types/timetableApi'
+import type { TimetableApiCall, TimetableApiJourney, TimetableApiResponse, TimetableApiService } from '~/types/timetableApi'
 
 // Turns the endpoint's answer (a whole timetable, train by train) into the result rows for one search.
+
+/** The key's code for the last train's symbol; the response doesn't mark the train, it's worked out here */
+const LAST_TRAIN_NOTE_CODE = 'last-train'
 
 /**
  * The key's symbols for these codes, in the codes' order, each once. Codes with no symbol in the key
@@ -73,14 +76,36 @@ const getMatchingTrainServiceByCriteria = (
     stopCount: service.calls.length - originIndex - 2,
     // The response has no alerts yet
     hasServiceAlert: false,
+    // Set by getJourneyTrainServicesByCriteria, which sees the journey's other trains
+    isLastTrain: false,
     notes: getTrainServiceNotesByCodes([...service.notes, ...stationNoteCodes], response),
     calls: getTrainServiceCallsByOrigin(callsFromOrigin, response, departureDate),
   }
 }
 
+/**
+ * One way down the line's rows for the search. The latest departure is the last train from the searched
+ * station that way today (the search only leaves out earlier trains), so it gets the key's `last-train`
+ * symbol, first.
+ */
+const getJourneyTrainServicesByCriteria = (
+  journey: TimetableApiJourney,
+  response: TimetableApiResponse,
+  criteria: TimetableSearchCriteria,
+): TrainService[] => {
+  const journeyServices = journey.services
+    .map(service => getMatchingTrainServiceByCriteria(service, response, criteria))
+    .filter((trainService): trainService is TrainService => trainService !== undefined)
+  const lastDepartsAt = journeyServices.reduce((latestDepartsAt, trainService) =>
+    trainService.departsAt > latestDepartsAt ? trainService.departsAt : latestDepartsAt, '')
+
+  return journeyServices.map(trainService => trainService.departsAt === lastDepartsAt
+    ? { ...trainService, isLastTrain: true, notes: [...getTrainServiceNotesByCodes([LAST_TRAIN_NOTE_CODE], response), ...trainService.notes] }
+    : trainService)
+}
+
 /** Every train leaving the searched station at or after the searched time, either way down the line, earliest first */
 export const getTrainServicesByCriteria = (response: TimetableApiResponse, criteria: TimetableSearchCriteria): TrainService[] =>
   response.journeys
-    .flatMap(journey => journey.services.map(service => getMatchingTrainServiceByCriteria(service, response, criteria)))
-    .filter((trainService): trainService is TrainService => trainService !== undefined)
+    .flatMap(journey => getJourneyTrainServicesByCriteria(journey, response, criteria))
     .sort((earlierService, laterService) => earlierService.departsAt.localeCompare(laterService.departsAt))

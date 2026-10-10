@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CalendarDate, Time } from '@internationalized/date'
-import { getSearchCriteriaByFormValues } from '~/utils/searchCriteria'
-import { haworthFixture, stationsFixture } from '../../fixtures/timetableFixtures'
+import { getSearchCriteriaByFormValues, isDepartingAfterOnDate, isSameSearchCriteria } from '~/utils/searchCriteria'
+import { haworthFixture, keighleyFixture, stationsFixture } from '../../fixtures/timetableFixtures'
 
 const departingDate = new CalendarDate(2026, 10, 9)
 
@@ -26,5 +26,34 @@ describe('getSearchCriteriaByFormValues', () => {
     expect(getSearchCriteriaByFormValues({ departingDate, departingTime: new Time(9, 0) }, stationsFixture)).toBeUndefined()
     expect(getSearchCriteriaByFormValues({ originId: 'haworth', departingTime: new Time(9, 0) }, stationsFixture)).toBeUndefined()
     expect(getSearchCriteriaByFormValues({ originId: 'haworth', departingDate }, stationsFixture)).toBeUndefined()
+  })
+})
+
+describe('isSameSearchCriteria', () => {
+  const haworthAtNine = { origin: haworthFixture, departingAfter: '2026-10-09T09:00' }
+
+  it('matches equal values held in different objects', () => {
+    expect(isSameSearchCriteria(haworthAtNine, { origin: { ...haworthFixture }, departingAfter: '2026-10-09T09:00' })).toBe(true)
+  })
+
+  it('tells apart a different station', () => {
+    expect(isSameSearchCriteria(haworthAtNine, { origin: keighleyFixture, departingAfter: '2026-10-09T09:00' })).toBe(false)
+  })
+
+  it('tells apart a different date or time', () => {
+    expect(isSameSearchCriteria(haworthAtNine, { origin: haworthFixture, departingAfter: '2026-10-09T09:30' })).toBe(false)
+    expect(isSameSearchCriteria(haworthAtNine, { origin: haworthFixture, departingAfter: '2026-10-10T09:00' })).toBe(false)
+  })
+})
+
+describe('isDepartingAfterOnDate', () => {
+  it('is true on the search day, whatever the time', () => {
+    expect(isDepartingAfterOnDate('2026-10-09T09:00', departingDate)).toBe(true)
+    expect(isDepartingAfterOnDate('2026-10-09T23:59', departingDate)).toBe(true)
+  })
+
+  it('is false on another day', () => {
+    expect(isDepartingAfterOnDate('2026-10-10T09:00', departingDate)).toBe(false)
+    expect(isDepartingAfterOnDate('2026-11-09T09:00', departingDate)).toBe(false)
   })
 })

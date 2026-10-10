@@ -81,7 +81,11 @@ const imageSrcset = computed(() => imageWidths
   color: var(--colour-text-inverse);
   background-color: var(--colour-surface-inverse);
   border-radius: var(--radius-lg);
-  transition: transform var(--duration-base) ease-out;
+  /*
+   * The hover lift uses `translate`, not `transform`: GSAP animates the card's transform for its
+   * entrance (useStationBentoEntranceMotion), and a CSS transition on the same property would lag every frame.
+   */
+  transition: translate var(--duration-base) ease-out;
 }
 
 /* Hover shadow, faded in by opacity (motion stays on transforms and opacity) */
@@ -176,7 +180,7 @@ const imageSrcset = computed(() => imageWidths
 /* MagicBento's only effect left with every option off: a 2px lift and a soft shadow. Pointer devices only */
 @media (hover: hover) {
   .station-bento-card:hover {
-    transform: translateY(-2px);
+    translate: 0 -2px;
   }
 
   .station-bento-card:hover::after {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { axe } from 'vitest-axe'
 import StationBento from '~/components/station/StationBento.vue'
@@ -49,8 +50,16 @@ describe('StationBento', () => {
 
     const imageSizes = wrapper.findAll('img').map(cardImage => cardImage.attributes('sizes'))
     expect(imageSizes[2]).toBe(imageSizes[3])
-    expect(imageSizes[2]).toContain('35rem')
-    expect(imageSizes[0]).toContain('17rem')
+    expect(imageSizes[2]).toContain('38rem')
+    expect(imageSizes[0]).toContain('19rem')
+  })
+
+  it('drops the anti-flash guard of the entrance once mounted', async () => {
+    const wrapper = await mountStationBento()
+    await nextTick()
+
+    expect(wrapper.classes()).toContain('station-bento')
+    expect(wrapper.classes()).not.toContain('station-bento-entrance-pending')
   })
 
   it('emits the station when a card is chosen', async () => {

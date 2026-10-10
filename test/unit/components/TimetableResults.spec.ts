@@ -27,7 +27,7 @@ describe('TimetableResults', () => {
 
   it('starts each row with the origin and its departure time', async () => {
     const wrapper = await mountResults()
-    const firstOriginCell = wrapper.find('tbody tr .result-origin')
+    const firstOriginCell = wrapper.find('tbody tr .departure-origin')
     const departureTime = firstOriginCell.find('time')
 
     expect(firstOriginCell.text()).toContain('Haworth')
@@ -38,11 +38,11 @@ describe('TimetableResults', () => {
   it('shows the stop count and the destination with its arrival time', async () => {
     const wrapper = await mountResults()
     const [firstRow, secondRow] = wrapper.findAll('tbody tr')
-    const arrivalTime = firstRow?.find('.result-destination time')
+    const arrivalTime = firstRow?.find('.departure-destination time')
 
-    expect(firstRow?.find('.result-info').text()).toBe('3 stops')
-    expect(secondRow?.find('.result-info').text()).toBe('Direct')
-    expect(firstRow?.find('.result-destination').text()).toContain('Keighley')
+    expect(firstRow?.find('.departure-info').text()).toBe('3 stops')
+    expect(secondRow?.find('.departure-info').text()).toBe('Direct')
+    expect(firstRow?.find('.departure-destination').text()).toContain('Keighley')
     expect(arrivalTime?.attributes('datetime')).toBe('2026-04-24T13:00')
     expect(arrivalTime?.text()).toBe('13:00')
   })
@@ -50,11 +50,11 @@ describe('TimetableResults', () => {
   it('shows the timetable symbols of each row in the Info column, with their meaning as alt text', async () => {
     const wrapper = await mountResults()
     const [firstRow, secondRow] = wrapper.findAll('tbody tr')
-    const firstRowIcons = firstRow?.findAll('.result-info img') ?? []
+    const firstRowIcons = firstRow?.findAll('.departure-info img') ?? []
 
     expect(firstRowIcons.map(noteIcon => noteIcon.attributes('alt'))).toEqual(['Diesel train', 'Rail Story museums at Ingrow', 'National Rail connections'])
     expect(firstRowIcons[0]?.attributes('src')).toBe('/images/timetable-key/diesel.webp')
-    expect(secondRow?.find('.result-info img').exists()).toBe(false)
+    expect(secondRow?.find('.departure-info img').exists()).toBe(false)
   })
 
   it('labels service alerts in text, not by colour alone', async () => {
@@ -67,6 +67,17 @@ describe('TimetableResults', () => {
     resultRows
       .filter(resultRow => !resultRow.classes('has-service-alert'))
       .forEach(resultRow => expect(resultRow.text()).not.toContain('Service alert'))
+  })
+
+  it('tints the last train, with its symbol first and its button saying so', async () => {
+    const wrapper = await mountResults()
+    const resultRows = wrapper.findAll('tbody tr')
+    const lastTrainRows = resultRows.filter(resultRow => resultRow.classes('is-last-train'))
+
+    expect(lastTrainRows).toHaveLength(1)
+    expect(lastTrainRows[0]?.find('.departure-info img').attributes('alt')).toBe('Last train')
+    expect(lastTrainRows[0]?.find('.result-journey-button').text()).toBe('Journey details: Haworth 17:20 to Oxenhope 17:30, last train')
+    expect(resultRows[0]?.find('.result-journey-button').text()).not.toContain('last train')
   })
 
   it('gives each row a button that names the journey it opens', async () => {

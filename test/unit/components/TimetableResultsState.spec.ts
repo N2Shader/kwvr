@@ -27,6 +27,7 @@ describe('TimetableResultsState', () => {
       'Connections with National Rail services.',
       'Steam Train',
       'This train includes a Real Ale Bar Car.',
+      'Last train of the day from this station in this direction',
     ])
     // The text says what each icon means, so the icons themselves are decorative here
     resultsKey.findAll('img').forEach(keyIcon => expect(keyIcon.attributes('alt')).toBe(''))
