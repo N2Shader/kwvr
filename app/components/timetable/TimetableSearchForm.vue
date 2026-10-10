@@ -100,7 +100,13 @@ const searchNextTrainFromStation = (station: Station) => {
   searchForm.value?.requestSubmit()
 }
 
-defineExpose({ searchNextTrainFromStation })
+// Back to the search box (e.g. from the error state's button, which disappears): focus the station field,
+// which also scrolls the form into view
+const focusSearchForm = () => {
+  searchForm.value?.querySelector<HTMLElement>('.search-origin-trigger')?.focus()
+}
+
+defineExpose({ searchNextTrainFromStation, focusSearchForm })
 </script>
 
 <template>

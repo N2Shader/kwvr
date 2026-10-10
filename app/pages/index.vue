@@ -6,19 +6,29 @@ import { stationHighlights } from '~/data/stationHighlights'
 useHead({ title: 'Find train times — Keighley & Worth Valley Railway' })
 
 // Search box → useTimetableSearch → /api/timetable/search → the external timetable API
-const { searchState, searchTimetableByCriteria } = useTimetableSearch()
+const { searchState, searchTimetableByCriteria, resetTimetableSearch } = useTimetableSearch()
 
 const resultsSummary = computed(() => {
   const state = searchState.value
   if (state.status === 'loading') return formatSearchingSummary(state.criteria.origin.name)
   if (state.status === 'results') return formatResultsSummary(state.services.length)
   if (state.status === 'no-results') return formatResultsSummary(0)
-  // The error announcement comes with that state's design
+  if (state.status === 'error') return 'Sorry, we couldn’t load the timetable.'
   return ''
 })
 
 // A station card searches through the form, so the form shows the station, date and time searched
-const timetableSearchForm = useTemplateRef<{ searchNextTrainFromStation: (station: Station) => void }>('timetableSearchForm')
+const timetableSearchForm = useTemplateRef<{
+  searchNextTrainFromStation: (station: Station) => void
+  focusSearchForm: () => void
+}>('timetableSearchForm')
+
+// The error state's button: back to the station cards, with focus on the search box (the button is gone)
+const returnHomeFromError = async () => {
+  resetTimetableSearch()
+  await nextTick()
+  timetableSearchForm.value?.focusSearchForm()
+}
 </script>
 
 <template>
@@ -57,7 +67,10 @@ const timetableSearchForm = useTemplateRef<{ searchNextTrainFromStation: (statio
         :services="searchState.services"
       />
       <TimetableNoResultsState v-else-if="searchState.status === 'no-results'" />
-      <TimetableErrorState v-else />
+      <TimetableErrorState
+        v-else
+        @return-home="returnHomeFromError"
+      />
     </div>
   </div>
 </template>

@@ -1,13 +1,20 @@
-import dummyTimetableResponse from '../../data/dummy-timetable-response.json'
+// The search box's endpoint: passes the search (`originId`, `departingAfter`) to the external timetable API
+// (fetchTimetableByQuery) and returns its answer. If the API fails, so does this endpoint, with a 502, and
+// the page shows the error state (useTimetableSearch). The API's own error stays in the server log.
 
-// The search box's endpoint. It will call the external timetable API (not built yet) and return its services;
-// until then it returns a dummy response (the orange timetable, whole). The query carries `originId` and
-// `departingAfter`, ignored for now: the front end picks the matching services (getTrainServicesByCriteria).
-
-// TEMPORARY: holds the answer for 5s, to check the loading skeleton and its swap to the results. Remove before committing
+// TEMPORARY: holds the answer, to check the loading skeleton and its swap to the results. Remove before committing
 const SKELETON_CHECK_DELAY_MS = 500
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const { originId, departingAfter } = getQuery(event)
   await new Promise(resolve => setTimeout(resolve, SKELETON_CHECK_DELAY_MS))
-  return dummyTimetableResponse
+
+  try {
+    return await fetchTimetableByQuery({ originId: String(originId ?? ''), departingAfter: String(departingAfter ?? '') })
+  }
+  catch (error) {
+    console.error('Timetable API request failed', error)
+    // 502 Bad Gateway: our server is fine, the API behind it isn't. Its details aren't sent to the browser
+    throw createError({ statusCode: 502, statusMessage: 'Timetable API request failed' })
+  }
 })

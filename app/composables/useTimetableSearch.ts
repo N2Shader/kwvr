@@ -44,5 +44,10 @@ export const useTimetableSearch = () => {
     }
   }
 
-  return { searchState, searchTimetableByCriteria }
+  // Back to the station cards (the error state's way home)
+  const resetTimetableSearch = () => {
+    searchState.value = { status: 'first-use' }
+  }
+
+  return { searchState, searchTimetableByCriteria, resetTimetableSearch }
 }

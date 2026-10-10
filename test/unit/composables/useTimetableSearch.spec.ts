@@ -116,6 +116,20 @@ describe('useTimetableSearch', () => {
     expect(searchState.value).toEqual({ status: 'error', criteria: searchCriteriaFixture })
   })
 
+  it('goes back to first use when reset after an error', async () => {
+    const heldRequests = holdTimetableRequests()
+    const { searchState, searchTimetableByCriteria, resetTimetableSearch } = useTimetableSearch()
+
+    const searchDone = searchTimetableByCriteria(searchCriteriaFixture)
+    const heldRequest = await waitForHeldRequest(heldRequests, 0)
+    heldRequest.fail()
+    await searchDone
+
+    resetTimetableSearch()
+
+    expect(searchState.value).toEqual({ status: 'first-use' })
+  })
+
   it('ignores a late answer from an earlier search', async () => {
     const heldRequests = holdTimetableRequests()
     const { searchState, searchTimetableByCriteria } = useTimetableSearch()

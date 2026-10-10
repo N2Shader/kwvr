@@ -43,7 +43,7 @@
   }
 
   /*
-   * #__nuxt is Nuxt's app root. Making it a full-height flex column lets the site frame (app.vue) grow,
+   * #__nuxt is Nuxt's app root. Making it a full-height flex column lets the site frame (SiteFrame) grow,
    * so the frame's header + content + footer always fill the viewport.
    * The skip link and route announcer are absolutely positioned, so they take no space.
    */
