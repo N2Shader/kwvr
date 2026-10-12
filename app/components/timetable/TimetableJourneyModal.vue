@@ -5,6 +5,8 @@ import type { TrainService, TrainServiceCall } from '~/types/timetable'
 // One result's journey: its stops from the searched station to the last, then what its symbols mean.
 // UModal gives the dialog role, the focus trap, Esc and the close button. Its `ui` classes are styled
 // in the non-scoped block below, because the modal is portalled to the end of <body>.
+// `scrollable`: the overlay scrolls the whole modal, so on a short screen the header and the stops
+// table keep their natural size instead of being squeezed into a capped, self-scrolling body.
 const props = defineProps<{
   service: TrainService | undefined
   /** Where focus goes back to on close: the row's button that opened it */
@@ -51,6 +53,7 @@ const modalContentProps = computed(() => ({
 <template>
   <UModal
     v-model:open="isOpen"
+    scrollable
     :title="modalTitle"
     :description="modalDescription"
     :content="modalContentProps"

@@ -26,6 +26,9 @@ export const useTimetablePageSeo = (addressBarCriteria: ComputedRef<TimetableSea
   // The search's query, e.g. `?from=haworth&date=2026-10-13&time=10:00`, or nothing on the home page
   const pageQuery = computed(() => addressBarCriteria.value ? getSearchQueryStringByCriteria(addressBarCriteria.value) : '')
 
+  // X doesn't reliably read og:image:alt, so it gets its own copy
+  const previewImageAlt = 'The Worth Valley sign: white capitals on a burgundy totem'
+
   useSeoMeta({
     title: pageTitle,
     description: pageDescription,
@@ -40,8 +43,11 @@ export const useTimetablePageSeo = (addressBarCriteria: ComputedRef<TimetableSea
     ogImageWidth: 1200,
     ogImageHeight: 630,
     ogImageType: 'image/png',
-    ogImageAlt: 'The Worth Valley sign: white capitals on a burgundy totem',
+    ogImageAlt: previewImageAlt,
     twitterCard: 'summary_large_image',
+    twitterImageAlt: previewImageAlt,
+    // The railway's X account (its social link in data/siteLinks.ts), credited on previews
+    twitterSite: '@WorthValley',
   })
 
   const organisationId = `${railwayHomeHref}#organization`

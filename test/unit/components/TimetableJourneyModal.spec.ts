@@ -83,6 +83,12 @@ describe('TimetableJourneyModal', () => {
     expect(journeyDialog?.querySelector('.journey-notes')).toBeNull()
   })
 
+  it('scrolls as a whole, not inside its body', async () => {
+    const { journeyDialog } = await mountOpenJourneyModal()
+
+    expect(journeyDialog?.closest('[data-slot="overlay"]')).not.toBeNull()
+  })
+
   it('has no detectable accessibility violations', async () => {
     const { journeyDialog } = await mountOpenJourneyModal()
 
