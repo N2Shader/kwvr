@@ -35,7 +35,7 @@ describe('TimetableJourneyModal', () => {
     const noteLines = Array.from(journeyDialog?.querySelectorAll('.journey-notes li') ?? []).map(noteLine => noteLine.textContent?.trim())
 
     expect(journeyDialog?.textContent).toContain('Departs 17:20 on 24 April 2026 · Direct · Last train')
-    expect(noteLines[0]).toBe('Last train of the day from this station in this direction')
+    expect(noteLines[0]).toBe('Last train of the day from this station')
   })
 
   it('lists every stop from the boarding station on, with its time and whether the train departs or arrives', async () => {

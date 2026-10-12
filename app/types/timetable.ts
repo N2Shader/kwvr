@@ -38,7 +38,7 @@ export interface TrainService {
   /** Intermediate stops; 0 means direct */
   stopCount: number
   hasServiceAlert: boolean
-  /** The latest departure from the searched station this way down the line today */
+  /** The latest departure from the searched station today, either way down the line: the last row only */
   isLastTrain: boolean
   /** Last train first (if it is), then the train's symbols (diesel, steam, bar) and those of the stations it calls at from the origin on */
   notes: TrainServiceNote[]

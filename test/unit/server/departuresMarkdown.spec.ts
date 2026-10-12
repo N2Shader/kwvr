@@ -38,7 +38,7 @@ describe('buildDeparturesMarkdown', () => {
 
   it('explains each symbol once, and the request stop', () => {
     expect(departuresMarkdown.match(/\*\*Diesel train\*\*/g)).toHaveLength(1)
-    expect(departuresMarkdown).toContain('- **Last train**: Last train of the day from this station in this direction')
+    expect(departuresMarkdown).toContain('- **Last train**: Last train of the day from this station')
     expect(departuresMarkdown).toContain('- **Request stop**: Request Stop')
   })
 

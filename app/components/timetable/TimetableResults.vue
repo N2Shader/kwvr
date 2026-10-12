@@ -19,11 +19,15 @@ const resultColumns: TableColumn<TrainService>[] = [
   { id: 'destination', header: 'Destination', meta: { class: { th: 'column-destination', td: 'timetable-table-cell departure-destination' } } },
 ]
 
+// Its trains' rows are a shade darker, to tell the two ways down the line apart
+const DARKER_DESTINATION_STATION_ID = 'keighley'
+
 // Through `meta`, which reaches body rows only (`ui.tr` would hit the header row too)
 const resultTableMeta = {
   class: {
     tr: ({ original }: { original: TrainService }) => [
       'timetable-table-row result-row',
+      original.destination.id === DARKER_DESTINATION_STATION_ID ? 'is-to-keighley' : '',
       original.hasServiceAlert ? 'has-service-alert' : '',
       original.isLastTrain ? 'is-last-train' : '',
     ].filter(Boolean).join(' '),
@@ -148,6 +152,11 @@ useEventListener(resultsSection, 'click', (event: MouseEvent) => {
     background-color: var(--colour-surface-alt-hover);
   }
 
+  .timetable-results :deep(.result-row.is-to-keighley:hover .timetable-table-cell) {
+    background-color: var(--colour-surface-to-keighley-hover);
+  }
+
+  /* After the Keighley rule: the last train's tint wins on a row that is both */
   .timetable-results :deep(.result-row.is-last-train:hover .timetable-table-cell) {
     background-color: var(--colour-surface-last-train-hover);
   }

@@ -76,36 +76,35 @@ const getMatchingTrainServiceByCriteria = (
     stopCount: service.calls.length - originIndex - 2,
     // The response has no alerts yet
     hasServiceAlert: false,
-    // Set by getJourneyTrainServicesByCriteria, which sees the journey's other trains
+    // Set by getTrainServicesByCriteria, which sees every other train
     isLastTrain: false,
     notes: getTrainServiceNotesByCodes([...service.notes, ...stationNoteCodes], response),
     calls: getTrainServiceCallsByOrigin(callsFromOrigin, response, departureDate),
   }
 }
 
-/**
- * One way down the line's rows for the search. The latest departure is the last train from the searched
- * station that way today (the search only leaves out earlier trains), so it gets the key's `last-train`
- * symbol, first.
- */
+/** One way down the line's rows for the search */
 const getJourneyTrainServicesByCriteria = (
   journey: TimetableApiJourney,
   response: TimetableApiResponse,
   criteria: TimetableSearchCriteria,
-): TrainService[] => {
-  const journeyServices = journey.services
+): TrainService[] =>
+  journey.services
     .map(service => getMatchingTrainServiceByCriteria(service, response, criteria))
     .filter((trainService): trainService is TrainService => trainService !== undefined)
-  const lastDepartsAt = journeyServices.reduce((latestDepartsAt, trainService) =>
-    trainService.departsAt > latestDepartsAt ? trainService.departsAt : latestDepartsAt, '')
 
-  return journeyServices.map(trainService => trainService.departsAt === lastDepartsAt
+/**
+ * Every train leaving the searched station at or after the searched time, either way down the line, earliest
+ * first. The last row is the day's last train from the searched station, whichever way it goes (the search
+ * only leaves out earlier trains), so it alone gets the key's `last-train` symbol, first.
+ */
+export const getTrainServicesByCriteria = (response: TimetableApiResponse, criteria: TimetableSearchCriteria): TrainService[] => {
+  const trainServices = response.journeys
+    .flatMap(journey => getJourneyTrainServicesByCriteria(journey, response, criteria))
+    .sort((earlierService, laterService) => earlierService.departsAt.localeCompare(laterService.departsAt))
+  const lastTrainIndex = trainServices.length - 1
+
+  return trainServices.map((trainService, trainServiceIndex) => trainServiceIndex === lastTrainIndex
     ? { ...trainService, isLastTrain: true, notes: [...getTrainServiceNotesByCodes([LAST_TRAIN_NOTE_CODE], response), ...trainService.notes] }
     : trainService)
 }
-
-/** Every train leaving the searched station at or after the searched time, either way down the line, earliest first */
-export const getTrainServicesByCriteria = (response: TimetableApiResponse, criteria: TimetableSearchCriteria): TrainService[] =>
-  response.journeys
-    .flatMap(journey => getJourneyTrainServicesByCriteria(journey, response, criteria))
-    .sort((earlierService, laterService) => earlierService.departsAt.localeCompare(laterService.departsAt))

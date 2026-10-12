@@ -47,6 +47,14 @@
   background-color: var(--colour-surface-alt);
 }
 
+/*
+ * Trains to Keighley, a shade darker, to tell the two ways apart. Not by colour alone: the Destination
+ * column names it. Before the last train's and the alert's rules, so their tints win on a row that is both.
+ */
+.timetable-table-row.is-to-keighley .timetable-table-cell {
+  background-color: var(--colour-surface-to-keighley);
+}
+
 /* Not by colour alone: the row's Info cell also shows the key's last-train symbol */
 .timetable-table-row.is-last-train .timetable-table-cell {
   background-color: var(--colour-surface-last-train);

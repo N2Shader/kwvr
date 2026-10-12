@@ -86,9 +86,20 @@ describe('TimetableResults', () => {
     const lastTrainRows = resultRows.filter(resultRow => resultRow.classes('is-last-train'))
 
     expect(lastTrainRows).toHaveLength(1)
+    expect(resultRows.at(-1)?.classes('is-last-train')).toBe(true)
     expect(lastTrainRows[0]?.find('.departure-info img').attributes('alt')).toBe('Last train')
     expect(lastTrainRows[0]?.find('.result-journey-button').text()).toBe('Journey details: Haworth 17:20 to Oxenhope 17:30, last train')
     expect(resultRows[0]?.find('.result-journey-button').text()).not.toContain('last train')
+  })
+
+  it('shades the trains to Keighley, which their Destination column names too', async () => {
+    const wrapper = await mountResults()
+    const resultRows = wrapper.findAll('tbody tr')
+
+    expect(resultRows.map(resultRow => resultRow.classes('is-to-keighley'))).toEqual([true, false, true, false])
+    resultRows
+      .filter(resultRow => resultRow.classes('is-to-keighley'))
+      .forEach(resultRow => expect(resultRow.find('.departure-destination').text()).toContain('Keighley'))
   })
 
   it('gives each row a button that names the journey it opens', async () => {

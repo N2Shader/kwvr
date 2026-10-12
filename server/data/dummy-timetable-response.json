@@ -795,7 +795,7 @@
     {
       "code": "last-train",
       "label": "Last train",
-      "description": "Last train of the day from this station in this direction",
+      "description": "Last train of the day from this station",
       "icon": "/images/timetable-key/last-train.webp"
     }
   ]

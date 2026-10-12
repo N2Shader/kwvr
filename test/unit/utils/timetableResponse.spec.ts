@@ -34,7 +34,7 @@ describe('getTrainServicesByCriteria', () => {
     const trainServices = getTrainServicesByCriteria(timetableResponseFixture, { origin: haworthFixture, departingAfter: '2026-10-09T12:00' })
 
     expect(trainServices).toEqual([
-      { id: 'fixture-keighley-1200', origin: haworthFixture, destination: oxenhopeFixture, departsAt: '2026-10-09T12:15', arrivesAt: '2026-10-09T12:20', stopCount: 0, hasServiceAlert: false, isLastTrain: true, notes: [lastTrainNoteFixture, dieselNoteFixture], calls: haworthToOxenhopeCalls },
+      { id: 'fixture-keighley-1200', origin: haworthFixture, destination: oxenhopeFixture, departsAt: '2026-10-09T12:15', arrivesAt: '2026-10-09T12:20', stopCount: 0, hasServiceAlert: false, isLastTrain: false, notes: [dieselNoteFixture], calls: haworthToOxenhopeCalls },
       { id: 'fixture-oxenhope-1330', origin: haworthFixture, destination: keighleyFixture, departsAt: '2026-10-09T13:35', arrivesAt: '2026-10-09T13:50', stopCount: 2, hasServiceAlert: false, isLastTrain: true, notes: [lastTrainNoteFixture, steamNoteFixture, barNoteFixture, railStoryNoteFixture, nationalRailNoteFixture], calls: haworthToKeighleyCalls },
     ])
   })
@@ -72,16 +72,16 @@ describe('getTrainServicesByCriteria', () => {
   it('leaves out the symbols of stations before the origin', () => {
     const [trainService] = getTrainServicesByCriteria(timetableResponseFixture, { origin: haworthFixture, departingAfter: '2026-10-09T12:00' })
 
-    expect(trainService?.notes).toEqual([lastTrainNoteFixture, dieselNoteFixture])
+    expect(trainService?.notes).toEqual([dieselNoteFixture])
   })
 
-  it('marks only the latest departure each way as the last train', () => {
+  it('marks only the latest departure, whichever way it goes, as the last train', () => {
     const trainServices = getTrainServicesByCriteria(timetableResponseFixture, { origin: haworthFixture, departingAfter: '2026-10-09T10:00' })
 
-    // The 11:05 and 13:35 towards Keighley, and the 12:15, the only departure towards Oxenhope
+    // The 11:05 and 13:35 towards Keighley, and the 12:15 towards Oxenhope: only the 13:35, the last row
     expect(trainServices.map(trainService => [trainService.id, trainService.isLastTrain])).toEqual([
       ['fixture-oxenhope-1100', false],
-      ['fixture-keighley-1200', true],
+      ['fixture-keighley-1200', false],
       ['fixture-oxenhope-1330', true],
     ])
   })
