@@ -27,6 +27,7 @@ const {
   departingTimeNotice,
   earliestDepartingTime,
   refreshDepartureClock,
+  commitDepartingDate,
   commitDepartingTime,
   pauseDepartingTimeCommit,
   resumeDepartingTimeCommit,
@@ -69,7 +70,7 @@ const focusFirstInvalidField = () => {
 
 // Enter in the time field and the Search button both end up here, through the form's submit event.
 // The Search button is never disabled: it stays focusable, and pressing it explains what's missing.
-// A time already gone today is refused, not fixed: the user sees an error and chooses again.
+// A time already gone today is refused, not fixed: the user sees an error and chooses again. Resolves to whether a search went out.
 const submitSearch = async () => {
   // Moving focus to a field to fix mustn't quietly fix the time on the way out of the time field
   pauseDepartingTimeCommit()
@@ -81,7 +82,7 @@ const submitSearch = async () => {
     await nextTick()
     focusFirstInvalidField()
     resumeDepartingTimeCommit()
-    return
+    return false
   }
 
   resumeDepartingTimeCommit()
@@ -89,6 +90,7 @@ const submitSearch = async () => {
 
   const searchCriteria = getSearchCriteriaByFormValues(searchFormValues.value, props.stations)
   if (searchCriteria) emit('search', searchCriteria)
+  return searchCriteria !== undefined
 }
 
 // A station card under the search box: fill in that station, put the date and time back to the next
@@ -100,13 +102,23 @@ const searchNextTrainFromStation = (station: Station) => {
   searchForm.value?.requestSubmit()
 }
 
+// A search from the address bar (a shared link, Back/Forward): fill in its values and submit, with the same
+// checks, errors and focus move as Search. A day or time already gone is refused, not moved.
+const searchFromAddressBar = (criteria: TimetableSearchCriteria) => {
+  const addressBarValues = getSearchFormValuesByCriteria(criteria)
+  selectedOriginId.value = addressBarValues.originId
+  selectedDepartingDate.value = addressBarValues.departingDate
+  selectedDepartingTime.value = addressBarValues.departingTime
+  return submitSearch()
+}
+
 // Back to the search box (e.g. from the error state's button, which disappears): focus the station field,
 // which also scrolls the form into view
 const focusSearchForm = () => {
   searchForm.value?.querySelector<HTMLElement>('.search-origin-trigger')?.focus()
 }
 
-defineExpose({ searchNextTrainFromStation, focusSearchForm })
+defineExpose({ searchNextTrainFromStation, searchFromAddressBar, focusSearchForm })
 </script>
 
 <template>
@@ -135,6 +147,7 @@ defineExpose({ searchNextTrainFromStation, focusSearchForm })
         v-model="selectedDepartingDate"
         :earliest-date="earliestDepartingDate"
         :error-message="searchFormErrors.departingDate"
+        @update:model-value="commitDepartingDate"
       />
 
       <TimetableDepartureTimeField

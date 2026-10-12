@@ -1,6 +1,7 @@
 // Site-wide link data, read with `useAppConfig()`. Values mirror https://kwvr.co.uk.
 export default defineAppConfig({
-  homeHref: 'https://kwvr.co.uk/',
+  // This app's home (the search page); the other links still mirror kwvr.co.uk
+  homeHref: '/',
   primaryNav: [
     { label: 'Accessibility', href: 'https://kwvr.co.uk/visiting-the-kwvr/accessibility/' },
     { label: 'Directions', href: 'https://kwvr.co.uk/visiting-the-kwvr/getting-here/' },

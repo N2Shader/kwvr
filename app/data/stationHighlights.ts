@@ -11,6 +11,7 @@ export const stationHighlights: StationHighlight[] = [
     imageSrc: '/images/stations/keighley.webp',
     imageWidth: 1280,
     imageHeight: 853,
+    pageHref: 'https://kwvr.co.uk/visiting-the-kwvr/stations/keighley-station/',
   },
   {
     station: { id: 'ingrow-west', name: 'Ingrow West' },
@@ -19,6 +20,7 @@ export const stationHighlights: StationHighlight[] = [
     imageSrc: '/images/stations/ingrow-west.webp',
     imageWidth: 1280,
     imageHeight: 853,
+    pageHref: 'https://kwvr.co.uk/visiting-the-kwvr/stations/ingrow-west-station/',
   },
   {
     station: { id: 'damems', name: 'Damems' },
@@ -27,6 +29,7 @@ export const stationHighlights: StationHighlight[] = [
     imageSrc: '/images/stations/damems.webp',
     imageWidth: 1280,
     imageHeight: 960,
+    pageHref: 'https://kwvr.co.uk/visiting-the-kwvr/stations/damems-station/',
   },
   {
     station: { id: 'oakworth', name: 'Oakworth' },
@@ -35,6 +38,7 @@ export const stationHighlights: StationHighlight[] = [
     imageSrc: '/images/stations/oakworth.webp',
     imageWidth: 1280,
     imageHeight: 851,
+    pageHref: 'https://kwvr.co.uk/visiting-the-kwvr/stations/oakworth-station/',
   },
   {
     station: { id: 'haworth', name: 'Haworth' },
@@ -43,6 +47,7 @@ export const stationHighlights: StationHighlight[] = [
     imageSrc: '/images/stations/haworth.webp',
     imageWidth: 1280,
     imageHeight: 854,
+    pageHref: 'https://kwvr.co.uk/visiting-the-kwvr/stations/haworth-station/',
   },
   {
     station: { id: 'oxenhope', name: 'Oxenhope' },
@@ -51,5 +56,6 @@ export const stationHighlights: StationHighlight[] = [
     imageSrc: '/images/stations/oxenhope.webp',
     imageWidth: 1280,
     imageHeight: 860,
+    pageHref: 'https://kwvr.co.uk/visiting-the-kwvr/stations/oxenhope-station/',
   },
 ]

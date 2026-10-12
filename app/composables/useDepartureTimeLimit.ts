@@ -7,10 +7,12 @@ import type { CalendarDate, Time, ZonedDateTime } from '@internationalized/date'
  *
  * The time field writes its model after every keystroke (typing "15" at 14:30 first writes 01:30),
  * so the time can't be clamped on each change. It's clamped when the user is done instead: when focus
- * leaves the time field, and when a date is picked. Until then an earlier time shows as invalid.
+ * leaves the time field, and when the user picks a date. Until then an earlier time shows as invalid.
  *
  * Going to Search never clamps it: a search with an earlier time is refused with an error instead
  * (see getSearchFormErrorsByValues), so the user doesn't search for a time they didn't choose.
+ * Nor does a date set in code (the prefill, a station card, a link from the address bar): a link's
+ * time already gone is refused with its error, never moved behind it.
  */
 export const useDepartureTimeLimit = (departingDate: Ref<CalendarDate | undefined>, departingTime: Ref<Time | undefined>) => {
   // Read from the user's clock on the client only (the server's clock and time zone would break hydration)
@@ -59,18 +61,23 @@ export const useDepartureTimeLimit = (departingDate: Ref<CalendarDate | undefine
     moveDepartingTimeToEarliest()
   }
 
-  // Picking a date is a single action, so the time can be clamped straight away
-  watch(departingDate, (selectedDate) => {
-    if (!selectedDate) return
+  /**
+   * The user picked a date (a single action), so the time can be clamped straight away. Wired to the date
+   * picker's own update (after its v-model, so the date is already updated), not a watcher, so a date set
+   * in code doesn't run it.
+   */
+  const commitDepartingDate = () => {
+    if (!departingDate.value) return
     refreshDepartureClock()
     moveDepartingTimeToEarliest()
-  })
+  }
 
   return {
     departureClock,
     departingTimeNotice,
     earliestDepartingTime,
     refreshDepartureClock,
+    commitDepartingDate,
     commitDepartingTime,
     pauseDepartingTimeCommit,
     resumeDepartingTimeCommit,

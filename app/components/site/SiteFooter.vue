@@ -40,13 +40,15 @@ const { contact, legalLinks, organisation, socialLinks } = useAppConfig()
             <a
               :href="socialLink.href"
               class="social-link"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <UIcon
                 :name="socialLink.icon"
                 class="social-icon"
                 aria-hidden="true"
               />
-              <span class="visually-hidden">{{ socialLink.label }}</span>
+              <span class="visually-hidden">{{ socialLink.label }} (opens in a new tab)</span>
             </a>
           </li>
         </ul>

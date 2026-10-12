@@ -29,14 +29,22 @@ describe('SiteFooter', () => {
     expect(legalLinkLabels).toEqual(['Terms & Conditions', 'Privacy Policy'])
   })
 
-  it('renders the social links as logos named by visually hidden text', async () => {
+  it('renders the social links as logos named by visually hidden text, opening in a new tab', async () => {
     const wrapper = await mountSuspended(SiteFooter)
     const socialLinks = wrapper.findAll('ul[aria-label="Social media"] a')
 
     expect(socialLinks.map(socialLink => socialLink.find('.visually-hidden').text()))
-      .toEqual(['Facebook', 'X (formerly Twitter)', 'Instagram', 'YouTube', 'TikTok'])
+      .toEqual([
+        'Facebook (opens in a new tab)',
+        'X (formerly Twitter) (opens in a new tab)',
+        'Instagram (opens in a new tab)',
+        'YouTube (opens in a new tab)',
+        'TikTok (opens in a new tab)',
+      ])
     socialLinks.forEach((socialLink) => {
       expect(socialLink.find('.social-icon').attributes('aria-hidden')).toBe('true')
+      expect(socialLink.attributes('target')).toBe('_blank')
+      expect(socialLink.attributes('rel')).toContain('noopener')
     })
   })
 

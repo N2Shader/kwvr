@@ -35,7 +35,7 @@ const headingId = useId()
 
 <style scoped>
 .first-use-state {
-  /* Grows to fill the page's content area (at least one screen tall) */
+  /* Grows to fill the page's content area down to the footer on a short page */
   flex: 1;
   padding-block: var(--space-6) var(--space-8);
   background-color: var(--colour-surface-alt);

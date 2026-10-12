@@ -4,11 +4,11 @@ import { axe } from 'vitest-axe'
 import SiteHeader from '~/components/site/SiteHeader.vue'
 
 describe('SiteHeader', () => {
-  it('links the logo to the KWVR home page with descriptive alt text', async () => {
+  it('links the logo to the app\'s home page with descriptive alt text', async () => {
     const wrapper = await mountSuspended(SiteHeader)
     const logoLink = wrapper.find('a.site-logo-link')
 
-    expect(logoLink.attributes('href')).toBe('https://kwvr.co.uk/')
+    expect(logoLink.attributes('href')).toBe('/')
     expect(logoLink.find('img').attributes('alt')).toBe('Keighley & Worth Valley Railway home')
   })
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CalendarDate, Time } from '@internationalized/date'
-import { getSearchCriteriaByFormValues, isDepartingAfterOnDate, isSameSearchCriteria } from '~/utils/searchCriteria'
+import { getSearchCriteriaByFormValues, getSearchFormValuesByCriteria, isDepartingAfterOnDate, isSameSearchCriteria } from '~/utils/searchCriteria'
 import { haworthFixture, keighleyFixture, stationsFixture } from '../../fixtures/timetableFixtures'
 
 const departingDate = new CalendarDate(2026, 10, 9)
@@ -26,6 +26,22 @@ describe('getSearchCriteriaByFormValues', () => {
     expect(getSearchCriteriaByFormValues({ departingDate, departingTime: new Time(9, 0) }, stationsFixture)).toBeUndefined()
     expect(getSearchCriteriaByFormValues({ originId: 'haworth', departingTime: new Time(9, 0) }, stationsFixture)).toBeUndefined()
     expect(getSearchCriteriaByFormValues({ originId: 'haworth', departingDate }, stationsFixture)).toBeUndefined()
+  })
+})
+
+describe('getSearchFormValuesByCriteria', () => {
+  it('gives the form the station, date and time of a search', () => {
+    const searchFormValues = getSearchFormValuesByCriteria({ origin: haworthFixture, departingAfter: '2026-10-09T09:05' })
+
+    expect(searchFormValues.originId).toBe('haworth')
+    expect(searchFormValues.departingDate?.compare(departingDate)).toBe(0)
+    expect(searchFormValues.departingTime?.compare(new Time(9, 5))).toBe(0)
+  })
+
+  it('round-trips with getSearchCriteriaByFormValues', () => {
+    const searchCriteria = { origin: haworthFixture, departingAfter: '2026-10-09T14:30' }
+
+    expect(getSearchCriteriaByFormValues(getSearchFormValuesByCriteria(searchCriteria), stationsFixture)).toEqual(searchCriteria)
   })
 })
 

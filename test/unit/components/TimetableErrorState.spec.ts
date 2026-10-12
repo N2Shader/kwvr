@@ -12,7 +12,7 @@ describe('TimetableErrorState', () => {
     const heading = wrapper.get('.error-state h2')
     expect(heading.text()).toBe('Sorry, we couldn’t load the timetable')
     expect(wrapper.get('.error-state').attributes('aria-labelledby')).toBe(heading.attributes('id'))
-    expect(wrapper.get('.error-state .error-state-message').text()).toContain('Please try again in a moment.')
+    expect(wrapper.get('.error-state .illustrated-state-message').text()).toContain('Please try again in a moment.')
   })
 
   it('shows the illustration as decoration, in resized copies', async () => {

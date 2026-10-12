@@ -96,8 +96,48 @@ const originErrorId = useId()
   color: var(--colour-text);
 }
 
-/* Burgundy tick marks the selected station */
+/* No colour transitions: the highlight follows the arrow keys at once */
+.search-origin-option,
+.search-origin-option::before {
+  transition: none;
+}
+
+/*
+ * No ring on the options: the highlighted option's pill (below) is their focus indicator.
+ * reka moves focus to an option in script, and the trigger blocks focus on mousedown, so after a load
+ * Chrome counts that first mouse-opened focus as keyboard focus (:focus-visible), and our global ring
+ * drew a square box round the option.
+ */
+.search-origin-option:focus-visible {
+  outline: none;
+}
+
+/*
+ * The highlighted option (pointer or arrow keys) is a solid burgundy pill with white text (~7.6:1),
+ * in Nuxt UI's inset rounded shape (its ::before). Its own highlight, cream at 50% on white, was too faint.
+ */
+.search-origin-option[data-highlighted] {
+  color: var(--colour-primary-contrast);
+}
+
+.search-origin-option[data-highlighted]::before {
+  background-color: var(--colour-primary);
+}
+
+/* Burgundy tick marks the selected station; white on the pill, so it stays visible there */
 .search-origin-option [data-slot='itemTrailingIcon'] {
   color: var(--colour-text-accent);
+}
+
+.search-origin-option[data-highlighted] [data-slot='itemTrailingIcon'] {
+  color: var(--colour-primary-contrast);
+}
+
+/* Forced colours drop backgrounds, so the highlighted option gets an outline instead */
+@media (forced-colors: active) {
+  .search-origin-option[data-highlighted] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
 }
 </style>

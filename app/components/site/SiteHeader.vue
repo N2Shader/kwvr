@@ -10,6 +10,7 @@ const logoSrc = '/images/logo.svg'
     as="header"
     class="site-header"
   >
+    <!-- A plain link, not NuxtLink: a full load of / starts over (clears the search state, leaves the error page) -->
     <a
       :href="homeHref"
       class="site-logo-link"

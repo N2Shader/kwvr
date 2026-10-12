@@ -69,20 +69,38 @@ export interface TrainServiceNote {
   iconSrc: string
 }
 
-/** What the content area under the search box shows; one component per status */
+/**
+ * What the content area under the search box shows; one component per status.
+ * `checking-link`: a search from the address bar (a shared link), shown as loading from the first paint,
+ * but only sent once the form has checked it in the browser (the check reads the user's clock).
+ */
 export type TimetableSearchState =
   | { status: 'first-use' }
+  | { status: 'checking-link', criteria: TimetableSearchCriteria }
   | { status: 'loading', criteria: TimetableSearchCriteria }
   | { status: 'results', criteria: TimetableSearchCriteria, services: TrainService[] }
   | { status: 'no-results', criteria: TimetableSearchCriteria }
   | { status: 'error', criteria: TimetableSearchCriteria }
 
+/** Where a station's map is centred and pinned */
+export interface StationMapLocation {
+  latitude: number
+  longitude: number
+}
+
+/** The searched station's block under the results: about it, what's nearby, and a map, from kwvr.co.uk */
 export interface StationDetails {
   station: Station
   description: string
+  /** Titles from the station page's "Things to do"; empty when it lists none (Damems) */
+  thingsToDo: string[]
+  mapLocation: StationMapLocation
 }
 
-/** A station card on the first-use state: a photo and a short line about the station, from kwvr.co.uk */
+/**
+ * A station card, from kwvr.co.uk: a photo and a short line about the station. On the first-use state
+ * (the bento) and, three picked at random, under the results.
+ */
 export interface StationHighlight {
   station: Station
   /** Short tag at the top of the card, e.g. "Northern terminus" */
@@ -92,11 +110,6 @@ export interface StationHighlight {
   imageSrc: string
   imageWidth: number
   imageHeight: number
-}
-
-export interface StationAttraction {
-  id: string
-  title: string
-  description: string
-  imageSrc: string
+  /** The station's page on kwvr.co.uk */
+  pageHref: string
 }

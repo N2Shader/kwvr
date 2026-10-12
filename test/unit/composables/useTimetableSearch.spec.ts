@@ -1,47 +1,15 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { registerEndpoint } from '@nuxt/test-utils/runtime'
-import { createError } from '#imports'
+import { afterEach, describe, expect, it } from 'vitest'
 import { useTimetableSearch } from '~/composables/useTimetableSearch'
 import type { TimetableSearchCriteria } from '~/types/timetable'
-import type { TimetableApiResponse } from '~/types/timetableApi'
 import { getTrainServicesByCriteria } from '~/utils/timetableResponse'
 import { keighleyFixture, searchCriteriaFixture, timetableResponseFixture } from '../../fixtures/timetableFixtures'
+import { copySearchCriteria, holdTimetableRequests, releaseTimetableEndpoint, waitForHeldRequest } from '../../fixtures/heldTimetableRequests'
 
 const keighleyCriteria: TimetableSearchCriteria = { origin: keighleyFixture, departingAfter: '2026-04-24T11:00' }
 
-// A request the mocked endpoint holds until the test answers it, so the state in between can be checked
-interface HeldTimetableRequest {
-  query: Record<string, string>
-  answer: () => void
-  fail: () => void
-}
-
-let unregisterTimetableEndpoint = () => {}
-
-const holdTimetableRequests = () => {
-  const heldRequests: HeldTimetableRequest[] = []
-  unregisterTimetableEndpoint = registerEndpoint('/api/timetable/search', event => new Promise<TimetableApiResponse>((resolve, reject) => {
-    heldRequests.push({
-      query: Object.fromEntries(new URL(event.path, 'http://localhost').searchParams),
-      answer: () => resolve(timetableResponseFixture),
-      fail: () => reject(createError({ statusCode: 503, statusMessage: 'Timetable API unavailable' })),
-    })
-  }))
-  return heldRequests
-}
-
-// Waits until the endpoint has received the request at `requestIndex` (0 is the first)
-const waitForHeldRequest = async (heldRequests: HeldTimetableRequest[], requestIndex: number) => {
-  await vi.waitFor(() => expect(heldRequests.length).toBeGreaterThan(requestIndex))
-  return heldRequests[requestIndex] as HeldTimetableRequest
-}
-
+// A search from the address bar (the linked criteria) is covered by useTimetableSearchAddressBar.spec.ts
 describe('useTimetableSearch', () => {
-  // Unregistered once only: a second call would remove whichever registration is last
-  afterEach(() => {
-    unregisterTimetableEndpoint()
-    unregisterTimetableEndpoint = () => {}
-  })
+  afterEach(releaseTimetableEndpoint)
 
   it('starts on first use', () => {
     const { searchState } = useTimetableSearch()
@@ -153,10 +121,6 @@ describe('useTimetableSearch', () => {
       services: getTrainServicesByCriteria(timetableResponseFixture, keighleyCriteria),
     })
   })
-
-  // The form builds new criteria on every submit, so a repeat is an equal copy, never the same object
-  const copySearchCriteria = (criteria: TimetableSearchCriteria): TimetableSearchCriteria =>
-    ({ origin: { ...criteria.origin }, departingAfter: criteria.departingAfter })
 
   it('doesn\'t send the search on screen again', async () => {
     const heldRequests = holdTimetableRequests()

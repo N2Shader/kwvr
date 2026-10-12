@@ -1,3 +1,4 @@
+import { parseDateTime, toCalendarDate, toTime } from '@internationalized/date'
 import type { CalendarDate } from '@internationalized/date'
 import type { Station, TimetableSearchCriteria, TimetableSearchFormValues } from '~/types/timetable'
 import { formatTimeOfDay } from '~/utils/timetableFormatting'
@@ -14,6 +15,15 @@ export const getSearchCriteriaByFormValues = (
   if (!origin || !departingDate || !departingTime) return undefined
 
   return { origin, departingAfter: `${departingDate.toString()}T${formatTimeOfDay(departingTime)}` }
+}
+
+/**
+ * The other way round: a search → the form's values, e.g. `{ origin: Haworth, departingAfter: '2026-10-09T14:30' }` →
+ * Haworth, 9 October 2026, 14:30 (a search from the address bar fills the form with these)
+ */
+export const getSearchFormValuesByCriteria = ({ origin, departingAfter }: TimetableSearchCriteria): TimetableSearchFormValues => {
+  const departingDateTime = parseDateTime(departingAfter)
+  return { originId: origin.id, departingDate: toCalendarDate(departingDateTime), departingTime: toTime(departingDateTime) }
 }
 
 /** Two searches ask the same thing: same station, same date and time */
