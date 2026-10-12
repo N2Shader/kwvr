@@ -25,6 +25,17 @@ describe('TimetableResults', () => {
     expect(resultsTable.findAll('tbody tr')).toHaveLength(servicesFixture.length)
   })
 
+  it('writes the table\'s roles out, so it stays a table when its rows turn into cards on mobile (Safari)', async () => {
+    const wrapper = await mountResults()
+    const resultsTable = wrapper.get('table')
+
+    expect(resultsTable.attributes('role')).toBe('table')
+    resultsTable.findAll('thead, tbody').forEach(rowGroup => expect(rowGroup.attributes('role')).toBe('rowgroup'))
+    resultsTable.findAll('tbody tr').forEach(resultRow => expect(resultRow.attributes('role')).toBe('row'))
+    resultsTable.findAll('th[scope="col"]').forEach(columnHeader => expect(columnHeader.attributes('role')).toBe('columnheader'))
+    resultsTable.findAll('tbody td').forEach(resultCell => expect(resultCell.attributes('role')).toBe('cell'))
+  })
+
   it('starts each row with the origin and its departure time', async () => {
     const wrapper = await mountResults()
     const firstOriginCell = wrapper.find('tbody tr .departure-origin')

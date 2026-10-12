@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { axe } from 'vitest-axe'
 import StationInfo from '~/components/station/StationInfo.vue'
@@ -10,8 +10,8 @@ const getStationDetailsById = (stationId: string) => {
   return stationDetails
 }
 
-const mountStationInfo = (stationId: string) =>
-  mountSuspended(StationInfo, { props: { details: getStationDetailsById(stationId) } })
+const mountStationInfo = (stationId: string, mountOptions: { attachTo?: HTMLElement } = {}) =>
+  mountSuspended(StationInfo, { props: { details: getStationDetailsById(stationId) }, ...mountOptions })
 
 describe('StationInfo', () => {
   it('names and describes the station', async () => {
@@ -43,17 +43,48 @@ describe('StationInfo', () => {
     expect(wrapper.find('ul').exists()).toBe(false)
   })
 
-  it('embeds a lazy, titled map pinned on the station', async () => {
+  it('doesn\'t load Google\'s map until asked: a button and a link to Google Maps instead', async () => {
     const wrapper = await mountStationInfo('haworth')
+
+    expect(wrapper.find('iframe').exists()).toBe(false)
+    expect(wrapper.get('.station-map-placeholder p').text()).toBe('The map comes from Google Maps, which may set cookies.')
+    expect(wrapper.get('.station-map-placeholder button').text()).toBe('Show map of Haworth station')
+
+    const mapLink = wrapper.get('a.station-map-link')
+    expect(mapLink.text()).toBe('Open in Google Maps (opens in a new tab)')
+    expect(mapLink.attributes('href')).toBe('https://www.google.com/maps/search/?api=1&query=53.8312,-1.9488')
+    expect(mapLink.attributes('target')).toBe('_blank')
+    expect(mapLink.attributes('rel')).toBe('noopener noreferrer')
+  })
+
+  it('loads the titled map pinned on the station when asked, and moves focus into it', async () => {
+    const wrapper = await mountStationInfo('haworth', { attachTo: document.body })
+
+    await wrapper.get('.station-map-placeholder button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('iframe').exists()).toBe(true))
 
     const stationMap = wrapper.get('iframe')
     expect(stationMap.attributes('title')).toBe('Map of Haworth station')
     expect(stationMap.attributes('src')).toBe('https://maps.google.com/maps?q=53.8312,-1.9488&z=15&hl=en-GB&output=embed')
-    expect(stationMap.attributes('loading')).toBe('lazy')
+    // Our origin only: the search in the address bar never reaches Google
+    expect(stationMap.attributes('referrerpolicy')).toBe('strict-origin-when-cross-origin')
+    expect(wrapper.find('.station-map-placeholder').exists()).toBe(false)
+    await vi.waitFor(() => expect(document.activeElement).toBe(stationMap.element))
+
+    wrapper.unmount()
   })
 
   it.each(['haworth', 'damems'])('has no detectable accessibility violations (%s)', async (stationId) => {
     const wrapper = await mountStationInfo(stationId)
+
+    expect(await axe(wrapper.html())).toHaveNoViolations()
+  })
+
+  it('has no detectable accessibility violations with the map loaded', async () => {
+    const wrapper = await mountStationInfo('haworth')
+
+    await wrapper.get('.station-map-placeholder button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('iframe').exists()).toBe(true))
 
     expect(await axe(wrapper.html())).toHaveNoViolations()
   })

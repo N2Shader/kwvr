@@ -21,6 +21,15 @@ export const getRouteQueryBySearchCriteria = ({ origin, departingAfter }: Timeta
 })
 
 /**
+ * A search → its query string as the router writes it, e.g. `?from=haworth&date=2026-10-12&time=14:30` (the page's
+ * links for previews and agents). Station ids are our own slugs and the date and time fixed formats: nothing to encode.
+ */
+export const getSearchQueryStringByCriteria = (criteria: TimetableSearchCriteria) => {
+  const { from, date, time } = getRouteQueryBySearchCriteria(criteria)
+  return `?from=${from}&date=${date}&time=${time}`
+}
+
+/**
  * The address bar's query → the search it holds, or `undefined` when it holds none: an unknown station,
  * a missing or repeated part, or a date or time that doesn't exist (e.g. `2026-02-30`, `25:00`).
  * It doesn't read the clock (safe during SSR): whether the day or time has gone is the form's check.

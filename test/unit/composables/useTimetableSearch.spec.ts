@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useTimetableSearch } from '~/composables/useTimetableSearch'
 import type { TimetableSearchCriteria } from '~/types/timetable'
 import { getTrainServicesByCriteria } from '~/utils/timetableResponse'
@@ -82,6 +82,21 @@ describe('useTimetableSearch', () => {
     await searchDone
 
     expect(searchState.value).toEqual({ status: 'error', criteria: searchCriteriaFixture })
+  })
+
+  it('gives the request a 15s timeout, so a search that never answers ends in the error state', async () => {
+    const fetchSpy = vi.spyOn(globalThis, '$fetch')
+    const heldRequests = holdTimetableRequests()
+    const { searchTimetableByCriteria } = useTimetableSearch()
+
+    const searchDone = searchTimetableByCriteria(searchCriteriaFixture)
+    const heldRequest = await waitForHeldRequest(heldRequests, 0)
+
+    expect(fetchSpy).toHaveBeenCalledWith('/api/timetable/search', expect.objectContaining({ timeout: 15_000 }))
+
+    heldRequest.answer()
+    await searchDone
+    fetchSpy.mockRestore()
   })
 
   it('goes back to first use when reset after an error', async () => {

@@ -29,6 +29,13 @@ const getCardOffsetByCentre = (cardRect: DOMRect, bentoRect: DOMRect): CardOffse
 }
 
 /**
+ * The cards already show: StationBento's anti-flash guard revealed them itself after 2s (a slow phone,
+ * hydration or GSAP still loading). Hiding them again to fly them in would flash, so they stay put.
+ */
+const areCardsAlreadyRevealed = (stationCards: HTMLElement[]) =>
+  stationCards.every(stationCard => getComputedStyle(stationCard).opacity === '1')
+
+/**
  * Brings the station cards in one after another on first use: each fades in from just outside the
  * bento and moves inwards from its own side, so they converge on the grid at every layout (four, two
  * or one column). StationBento hides the server-rendered cards until this has run (the returned flag),
@@ -38,15 +45,18 @@ export const useStationBentoEntranceMotion = (stationBentoRef: Readonly<Ref<HTML
   // True until the cards are hidden by GSAP (or never will be): StationBento's anti-flash guard
   const isBentoEntrancePending = ref(true)
   let bentoMotion: BentoMotion | undefined
+  let isUnmounted = false
 
-  onMounted(() => {
+  // GSAP loads in parallel with hydration (plugins/gsap.client.ts); the guard holds the cards until it's here
+  onMounted(async () => {
     const stationBento = stationBentoRef.value
     if (stationBento) {
-      const { $gsap } = useNuxtApp()
+      const $gsap = await useNuxtApp().$loadGsap()
+      if (isUnmounted) return
       bentoMotion = $gsap.matchMedia()
       bentoMotion.add(BENTO_MOTION_QUERY, () => {
         const stationCards = [...stationBento.querySelectorAll<HTMLElement>('.station-bento-card')]
-        if (stationCards.length === 0) return
+        if (stationCards.length === 0 || areCardsAlreadyRevealed(stationCards)) return
 
         // Measured before any tween moves them
         const bentoRect = stationBento.getBoundingClientRect()
@@ -74,6 +84,7 @@ export const useStationBentoEntranceMotion = (stationBentoRef: Readonly<Ref<HTML
   })
 
   onBeforeUnmount(() => {
+    isUnmounted = true
     bentoMotion?.revert()
   })
 

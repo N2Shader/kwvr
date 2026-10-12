@@ -20,12 +20,15 @@ const ROW_ENTRANCE_TIMING = { ease: 'sine.in', stagger: 0.025 }
  */
 export const useResultRowsEntranceMotion = (resultsSectionRef: Readonly<Ref<HTMLElement | null>>) => {
   let rowsMotion: RowsMotion | undefined
+  let isUnmounted = false
 
-  onMounted(() => {
+  // GSAP (plugins/gsap.client.ts) started loading at app start, long before any results can arrive
+  onMounted(async () => {
     const resultsSection = resultsSectionRef.value
     if (!resultsSection) return
 
-    const { $gsap } = useNuxtApp()
+    const $gsap = await useNuxtApp().$loadGsap()
+    if (isUnmounted) return
     rowsMotion = $gsap.matchMedia()
     rowsMotion.add(ROWS_MOTION_QUERY, () => {
       const resultRows = resultsSection.querySelectorAll<HTMLElement>('.result-row')
@@ -52,6 +55,7 @@ export const useResultRowsEntranceMotion = (resultsSectionRef: Readonly<Ref<HTML
   })
 
   onBeforeUnmount(() => {
+    isUnmounted = true
     rowsMotion?.revert()
   })
 }

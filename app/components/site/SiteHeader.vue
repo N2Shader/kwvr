@@ -1,8 +1,9 @@
 <script setup lang="ts">
 const { homeHref } = useAppConfig()
 
+// The "Worth Valley" sign, a compressed 133×38 PNG (6 KB).
 // Bound (not static) so Vite doesn't try to import it at build time — public/ files are served as-is
-const logoSrc = '/images/logo.svg'
+const logoSrc = '/images/logo.png'
 </script>
 
 <template>

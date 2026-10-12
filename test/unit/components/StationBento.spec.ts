@@ -1,5 +1,4 @@
-import { describe, expect, it } from 'vitest'
-import { nextTick } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { axe } from 'vitest-axe'
 import StationBento from '~/components/station/StationBento.vue'
@@ -54,12 +53,11 @@ describe('StationBento', () => {
     expect(imageSizes[0]).toContain('19rem')
   })
 
-  it('drops the anti-flash guard of the entrance once mounted', async () => {
+  it('drops the anti-flash guard of the entrance once mounted and GSAP has loaded', async () => {
     const wrapper = await mountStationBento()
-    await nextTick()
 
     expect(wrapper.classes()).toContain('station-bento')
-    expect(wrapper.classes()).not.toContain('station-bento-entrance-pending')
+    await vi.waitFor(() => expect(wrapper.classes()).not.toContain('station-bento-entrance-pending'))
   })
 
   it('emits the station when a card is chosen', async () => {

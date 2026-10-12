@@ -38,6 +38,17 @@ onKeyStroke('Escape', () => {
 
 onClickOutside(siteNavRef, closeMenu)
 
+/*
+ * Tabbing out of the open menu closes it, so the panel never covers the field that takes focus below it
+ * (WCAG 2.4.11). Only when focus moves to something else on the page: switching windows (no next target)
+ * leaves it open. In script, so no handler sits on the static <nav>.
+ */
+useEventListener(siteNavRef, 'focusout', (event: FocusEvent) => {
+  const nextFocusTarget = event.relatedTarget
+  if (!isMenuOpen.value || !(nextFocusTarget instanceof Node) || siteNavRef.value?.contains(nextFocusTarget)) return
+  closeMenu()
+})
+
 // Keep in sync with --bp-lg in tokens.css
 const isDesktopViewport = useMediaQuery('(min-width: 64rem)')
 

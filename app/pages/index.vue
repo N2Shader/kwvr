@@ -3,12 +3,13 @@ import type { Station, TimetableSearchCriteria } from '~/types/timetable'
 import { placeholderSearchDefaults, placeholderStations } from '~/data/placeholderTimetable'
 import { stationHighlights } from '~/data/stationHighlights'
 
-useHead({ title: 'Find train times — Keighley & Worth Valley Railway' })
-
 const route = useRoute()
 
 // The search in the address bar, e.g. `/?from=haworth&date=2026-10-12&time=14:30` (a shared link, Back/Forward)
 const addressBarCriteria = computed(() => getSearchCriteriaByRouteQuery(route.query, placeholderStations))
+
+// Title, description, link previews, canonical link, the Markdown twin and JSON-LD (a search link gets its own title)
+useTimetablePageSeo(addressBarCriteria)
 
 // Search box → useTimetableSearch → /api/timetable/search → the external timetable API.
 // A link's search shows as loading from the first paint, until the form checks it (see onMounted).
@@ -96,6 +97,8 @@ const returnHomeToStationCards = async () => {
     <!--
       One state at a time, in an area that never gets shorter than the screen while loading or showing results (see the styles).
       A link's search not yet checked shows as loading, in the same branch, so nothing remounts once it's sent.
+      Lazy (own chunks, prefetched once the page is idle): the states only a search reaches, so the first visit
+      doesn't download the results' table, modal, station map and the message states up front.
     -->
     <div
       class="timetable-page-content"
@@ -110,16 +113,16 @@ const returnHomeToStationCards = async () => {
         v-else-if="searchState.status === 'loading' || searchState.status === 'checking-link'"
         :criteria="searchState.criteria"
       />
-      <TimetableResultsState
+      <LazyTimetableResultsState
         v-else-if="searchState.status === 'results'"
         :criteria="searchState.criteria"
         :services="searchState.services"
       />
-      <TimetableNoResultsState
+      <LazyTimetableNoResultsState
         v-else-if="searchState.status === 'no-results'"
         @return-home="returnHomeToStationCards"
       />
-      <TimetableErrorState
+      <LazyTimetableErrorState
         v-else
         @return-home="returnHomeToStationCards"
       />

@@ -33,12 +33,13 @@ describe('TimetableResultsState', () => {
     resultsKey.findAll('img').forEach(keyIcon => expect(keyIcon.attributes('alt')).toBe(''))
   })
 
-  it('shows the searched station’s info and map', async () => {
+  it('shows the searched station’s info and its map, loaded only when asked', async () => {
     const wrapper = await mountResultsState()
     const stationInfo = wrapper.get('.station-info')
 
     expect(stationInfo.get('h2').text()).toBe('Haworth Station')
-    expect(stationInfo.get('iframe').attributes('title')).toBe('Map of Haworth station')
+    expect(stationInfo.find('iframe').exists()).toBe(false)
+    expect(stationInfo.get('.station-map-placeholder button').text()).toBe('Show map of Haworth station')
   })
 
   it('suggests three other stations, never the searched one', async () => {

@@ -32,6 +32,8 @@ const resultTableMeta = {
 
 const resultsSection = useTemplateRef<HTMLElement>('resultsSection')
 useResultRowsEntranceMotion(resultsSection)
+// The mobile cards change the table's display; explicit roles keep it a table for VoiceOver
+useExplicitTableRoles(resultsSection)
 
 // Kept after close, so the modal doesn't empty while it fades out
 const selectedService = shallowRef<TrainService>()

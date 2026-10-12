@@ -42,12 +42,15 @@ const buildMenuTimeline = ($gsap: Gsap, siteNav: HTMLElement, onReverseComplete:
 export const useSiteNavMenuMotion = (siteNavRef: Ref<HTMLElement | null>, syncMenuVisibility: () => void) => {
   let menuTimeline: MenuTimeline | undefined
   let menuMotion: MenuMotion | undefined
+  let isUnmounted = false
 
-  onMounted(() => {
+  // Until GSAP has loaded (see plugins/gsap.client.ts), open and close are instant
+  onMounted(async () => {
     const siteNav = siteNavRef.value
     if (!siteNav) return
 
-    const { $gsap } = useNuxtApp()
+    const $gsap = await useNuxtApp().$loadGsap()
+    if (isUnmounted) return
     menuMotion = $gsap.matchMedia()
     menuMotion.add(MENU_MOTION_QUERY, () => {
       menuTimeline = buildMenuTimeline($gsap, siteNav, syncMenuVisibility)
@@ -61,6 +64,7 @@ export const useSiteNavMenuMotion = (siteNavRef: Ref<HTMLElement | null>, syncMe
   })
 
   onBeforeUnmount(() => {
+    isUnmounted = true
     menuMotion?.revert()
   })
 

@@ -1,6 +1,9 @@
 import type { TimetableSearchCriteria, TimetableSearchState } from '~/types/timetable'
 import type { TimetableApiResponse } from '~/types/timetableApi'
 
+// A search that hasn't answered by then fails (the error state, with its retry) instead of loading forever
+const SEARCH_REQUEST_TIMEOUT_MS = 15_000
+
 /**
  * Runs a search for the page: the search box's criteria go to our endpoint (/api/timetable/search),
  * which will call the external timetable API, and the answer becomes the page state.
@@ -36,6 +39,7 @@ export const useTimetableSearch = (linkedCriteria?: TimetableSearchCriteria) => 
     try {
       const timetableResponse = await $fetch<TimetableApiResponse>('/api/timetable/search', {
         query: { originId: criteria.origin.id, departingAfter: criteria.departingAfter },
+        timeout: SEARCH_REQUEST_TIMEOUT_MS,
       })
       if (!isLatestSearch(criteria)) return
 

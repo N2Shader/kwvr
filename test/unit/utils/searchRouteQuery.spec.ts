@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getRouteQueryBySearchCriteria, getSearchCriteriaByRouteQuery } from '~/utils/searchRouteQuery'
+import { getRouteQueryBySearchCriteria, getSearchCriteriaByRouteQuery, getSearchQueryStringByCriteria } from '~/utils/searchRouteQuery'
 import { haworthFixture, stationsFixture } from '../../fixtures/timetableFixtures'
 
 const haworthCriteria = { origin: haworthFixture, departingAfter: '2026-10-12T14:30' }
@@ -7,6 +7,12 @@ const haworthCriteria = { origin: haworthFixture, departingAfter: '2026-10-12T14
 describe('getRouteQueryBySearchCriteria', () => {
   it('puts the station, date and time in the query', () => {
     expect(getRouteQueryBySearchCriteria(haworthCriteria)).toEqual({ from: 'haworth', date: '2026-10-12', time: '14:30' })
+  })
+})
+
+describe('getSearchQueryStringByCriteria', () => {
+  it('writes the query as the router does, with the time\'s colon as it is', () => {
+    expect(getSearchQueryStringByCriteria(haworthCriteria)).toBe('?from=haworth&date=2026-10-12&time=14:30')
   })
 })
 

@@ -1,3 +1,4 @@
+import type { TimetableApiResponse } from '~/types/timetableApi'
 import dummyTimetableResponse from '../data/dummy-timetable-response.json'
 
 export interface TimetableApiQuery {
@@ -14,9 +15,10 @@ const SIMULATE_TIMETABLE_API_ERROR = false
  * The API isn't built yet: until then the answer is the dummy response (the orange timetable, whole),
  * and the query is ignored (the front end picks the matching services, getTrainServicesByCriteria).
  */
-export const fetchTimetableByQuery = async (query: TimetableApiQuery) => {
+export const fetchTimetableByQuery = async (query: TimetableApiQuery): Promise<TimetableApiResponse> => {
   if (SIMULATE_TIMETABLE_API_ERROR) {
     throw createError({ statusCode: 503, statusMessage: `Timetable API unavailable for ${query.originId} (simulated)` })
   }
-  return dummyTimetableResponse
+  // A JSON import widens its strings (e.g. `timeType` to string), so it's typed here; the real call will be $fetch<TimetableApiResponse>
+  return dummyTimetableResponse as TimetableApiResponse
 }

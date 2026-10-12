@@ -79,9 +79,11 @@ const timeErrorId = useId()
   outline-offset: -1px;
 }
 
-/* A time already gone today: struck through like the calendar's past days, so it isn't shown by colour alone */
+/*
+ * A time already gone today: struck through, like the calendar's past days. The text keeps its full colour
+ * (grey, 10.8:1): unlike those days, the field is still being edited, so the disabled grey (3.4:1) would fail 4.5:1
+ */
 .search-field :deep(.search-time-field[data-invalid] [data-slot='segment']) {
-  color: var(--colour-text-disabled);
   text-decoration: line-through;
 }
 

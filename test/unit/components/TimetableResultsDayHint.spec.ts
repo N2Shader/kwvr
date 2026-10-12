@@ -16,10 +16,11 @@ describe('TimetableResultsDayHint', () => {
     vi.useRealTimers()
   })
 
-  it('says nothing for a search on today', async () => {
+  it('says nothing for a search on today, but keeps the line, so the table never moves', async () => {
     const wrapper = await mountDayHint('2026-04-24T12:00')
 
     expect(wrapper.find('.results-day-hint').exists()).toBe(false)
+    expect(wrapper.find('.results-day-hint-line').exists()).toBe(true)
   })
 
   it('warns, after an asterisk, when the search is for another day', async () => {

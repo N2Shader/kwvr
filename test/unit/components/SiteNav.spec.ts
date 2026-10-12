@@ -42,6 +42,32 @@ describe('SiteNav', () => {
     wrapper.unmount()
   })
 
+  it('closes the menu when focus moves out of it, so it never covers the focused field (WCAG 2.4.11)', async () => {
+    const wrapper = await mountSuspended(SiteNav)
+    const menuToggle = wrapper.find('button.site-nav-toggle')
+    const elsewhereOnPage = document.createElement('button')
+
+    await menuToggle.trigger('click')
+    wrapper.find('.site-nav-link').element.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: elsewhereOnPage }))
+    await nextTick()
+
+    expect(menuToggle.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.find('#site-nav-menu').classes()).not.toContain('is-open')
+  })
+
+  it('keeps the menu open while focus moves within it, or leaves the window', async () => {
+    const wrapper = await mountSuspended(SiteNav)
+    const menuToggle = wrapper.find('button.site-nav-toggle')
+    const [firstNavLink, secondNavLink] = wrapper.findAll('.site-nav-link')
+
+    await menuToggle.trigger('click')
+    firstNavLink?.element.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: secondNavLink?.element }))
+    secondNavLink?.element.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }))
+    await nextTick()
+
+    expect(menuToggle.attributes('aria-expanded')).toBe('true')
+  })
+
   it('has no detectable accessibility violations with the menu closed', async () => {
     const wrapper = await mountSuspended(SiteNav)
 

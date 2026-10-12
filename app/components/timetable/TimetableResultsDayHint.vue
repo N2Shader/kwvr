@@ -18,19 +18,31 @@ const isSearchForAnotherDay = computed(() =>
 </script>
 
 <template>
-  <p
-    v-if="isSearchForAnotherDay"
-    class="results-day-hint"
-  >
-    <!-- The asterisk is decoration: screen readers would read it out as "star" -->
-    <span aria-hidden="true">* </span>These trains are not for today
-  </p>
+  <!--
+    The line is always there, empty for today: the hint can only be known once mounted (the user's clock),
+    so it would otherwise push the table (or a shared link's skeleton) down when it appears
+  -->
+  <div class="results-day-hint-line">
+    <p
+      v-if="isSearchForAnotherDay"
+      class="results-day-hint"
+    >
+      <!-- The asterisk is decoration: screen readers would read it out as "star" -->
+      <span aria-hidden="true">* </span>These trains are not for today
+    </p>
+  </div>
 </template>
 
 <style scoped>
-.results-day-hint {
+/* One line of the hint's text, whether it shows or not */
+.results-day-hint-line {
+  min-height: calc(var(--font-size-xs) * var(--line-height-base));
   margin-block-end: var(--space-3);
   font-size: var(--font-size-xs);
+  line-height: var(--line-height-base);
+}
+
+.results-day-hint {
   color: var(--colour-text);
 }
 </style>

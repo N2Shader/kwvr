@@ -12,6 +12,15 @@ describe('SiteHeader', () => {
     expect(logoLink.find('img').attributes('alt')).toBe('Keighley & Worth Valley Railway home')
   })
 
+  it('shows the compressed PNG logo at its own size, so nothing shifts while it loads', async () => {
+    const wrapper = await mountSuspended(SiteHeader)
+    const logoImage = wrapper.get('img.site-logo')
+
+    expect(logoImage.attributes('src')).toBe('/images/logo.png')
+    expect(logoImage.attributes('width')).toBe('133')
+    expect(logoImage.attributes('height')).toBe('38')
+  })
+
   it('renders the labelled main navigation, ending with the donate button', async () => {
     const wrapper = await mountSuspended(SiteHeader)
     const mainNav = wrapper.find('nav[aria-label="Main"]')

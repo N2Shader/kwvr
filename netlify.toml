@@ -1,0 +1,29 @@
+# Netlify builds and serves the Nuxt app with server rendering. On Netlify's build, Nitro picks its `netlify`
+# preset by itself: the pages, /api and /index.md run as one Netlify Function; public/, the built assets and
+# the prerendered crawler files (robots.txt, sitemap.xml, llms.txt, llms-full.txt) are served from dist/.
+# @nuxt/image switches to Netlify Image CDN by itself. pnpm's version comes from `packageManager` in package.json.
+#
+# Response headers that every route needs (security headers, the llms.txt link, the agent files' content
+# types) live in nuxt.config.ts (routeRules): Nitro sends them from the function and writes them into
+# dist/_headers for the static files, so one list covers both. Only static-file caching is set here.
+# Netlify sets URL (the primary domain) during builds: nuxt.config.ts uses it for the absolute site URL.
+
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+[build.environment]
+  # Matches local development
+  NODE_VERSION = "24"
+
+# Hashed build assets (a new name whenever their content changes): cached for good
+[[headers]]
+  for = "/_nuxt/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Images in public/ keep their names when they change: a week, then revalidated
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, must-revalidate"
