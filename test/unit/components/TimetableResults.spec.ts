@@ -63,9 +63,18 @@ describe('TimetableResults', () => {
     const [firstRow, secondRow] = wrapper.findAll('tbody tr')
     const firstRowIcons = firstRow?.findAll('.departure-info img') ?? []
 
-    expect(firstRowIcons.map(noteIcon => noteIcon.attributes('alt'))).toEqual(['Diesel train', 'Rail Story museums at Ingrow', 'National Rail connections'])
+    expect(firstRowIcons.map(noteIcon => noteIcon.attributes('alt'))).toEqual(['Diesel train', 'Rail Story museums at Ingrow'])
     expect(firstRowIcons[0]?.attributes('src')).toBe('/images/timetable-key/diesel.webp')
     expect(secondRow?.find('.departure-info img').exists()).toBe(false)
+  })
+
+  it('shows a line end\'s symbols beside its name, not in the Info column', async () => {
+    const wrapper = await mountResults()
+    const [firstRow] = wrapper.findAll('tbody tr')
+    const destinationIcons = firstRow?.findAll('.departure-destination img') ?? []
+
+    expect(destinationIcons.map(noteIcon => noteIcon.attributes('alt'))).toEqual(['National Rail connections'])
+    expect(firstRow?.find('.departure-origin img').exists()).toBe(false)
   })
 
   it('labels service alerts in text, not by colour alone', async () => {

@@ -1,0 +1,471 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "KWVR Timetable API (back end ↔ front end contract)",
+    "version": "1.0.0",
+    "summary": "The one endpoint the KWVR timetable front end consumes: the timetable that runs on a given day, train by train.",
+    "description": "Contract between the KWVR timetable front end (Nuxt) and its back end (REST, JSON). Only the Nuxt server calls this API (`fetchTimetableByQuery` in `server/utils/timetableApi.ts`), never the browser, so no CORS is needed. The response is typed in the front end by `TimetableApiResponse` (`app/types/timetableApi.ts`); this file is its source of truth.\n\nThe back end sends **data only**. All UI logic is the front end's: picking the trains that leave the searched station at or after the searched time (both ways down the line), sorting them, marking the last train of the day, counting stops, resolving symbols, and choosing the page state (results, no results, error).\n\n## Rules the schema can't express (MUST)\n\n1. **Times** are UK local time (Europe/London), 24-hour, zero-padded `HH:mm`, with no date and no offset. A service never runs past midnight.\n2. **The day**: use the date part of `departingAfter` to pick the timetable that runs that day (e.g. the orange one) and return it. Returning the whole day's timetable is the expected answer; the front end filters it. The back end MAY leave out services that don't depart `originId` at or after the time, but MUST NOT trim the calls of a service it returns.\n3. **No trains that day** (or none left): `200` with `journeys: []` (or journeys with `services: []`), still with `stations` and `key`. The front end shows its \"no trains at that time\" state. Never a 404.\n4. **Calls** are in running order, first stop to last. The first call is a `departure`, the last call is an `arrival`, every call in between is a `departure`. Times never go backwards. A station appears at most once per service. A service may start or end part-way down the line (e.g. Haworth → Keighley, or Keighley → Haworth).\n5. **Every `stationId`** in a call MUST be in `stations` (a call to an unknown station is dropped). Send all six stations.\n6. **Every note code** used by a station or a service MUST be in `key` with a `label` and an `icon` (a code missing from the key is silently dropped). Each symbol's `icon` must be the path listed for its code below, a file the front end ships.\n7. **`last-train`** MUST be in `key` but MUST NOT appear in any service's or station's `notes`: the front end works out the last train and adds that symbol itself.\n8. **`x`** (request stop) MUST be in `key`; its `description` is shown next to every request stop. `a` and `d` MUST be in `key` too. The letters have no `label` and no `icon`.\n9. **Service ids** are unique across the whole response and stable for the same train (the front end keys its rows by them).\n10. **Journeys**: one per way down the line (Oxenhope → Keighley and Keighley → Oxenhope). `from` / `to` are the line ends of that way, not each service's first and last stop. Services within a journey are ordered by their first departure.\n11. **Text** is UTF-8 and shown as-is (curly quotes and `&` are fine; no HTML).\n\n## Errors\n\nAny non-2xx answer, malformed JSON, or no answer within **10 seconds** shows the front end's error state (\"Sorry, we couldn’t load the timetable\") and lets the user retry. The error body is only logged on the Nuxt server, never shown, so use the `Error` shape below for readable logs. The front end checks the query before sending it, so a `400` means a bug on one side.\n\n## Symbol codes and icons\n\n| code | for | label | icon |\n|---|---|---|---|\n| `diesel` | service | Diesel train | `/images/timetable-key/diesel.webp` |\n| `steam` | service | Steam train | `/images/timetable-key/steam.webp` |\n| `bar` | service | Real Ale Bar Car | `/images/timetable-key/bar.webp` |\n| `rail-story` | station (Ingrow West) | Rail Story museums at Ingrow | `/images/timetable-key/rail-story.webp` |\n| `national-rail-connection` | station (Keighley) | National Rail connections | `/images/timetable-key/national-rail.webp` |\n| `last-train` | key only (rule 7) | Last train | `/images/timetable-key/last-train.webp` |\n\nThe `label` is the icon's alt text (keep it short); the `description` is the full wording shown in the key under the results. Both may be reworded by the back end. A new symbol needs its icon added to the front end first, then its code added to this contract.\n\n## Stations\n\n| id | name |\n|---|---|\n| `keighley` | Keighley |\n| `ingrow-west` | Ingrow West |\n| `damems` | Damems |\n| `oakworth` | Oakworth |\n| `haworth` | Haworth |\n| `oxenhope` | Oxenhope |\n\nThe names are shown as sent (destination column, journey stops), so send them exactly as above."
+  },
+  "servers": [
+    {
+      "url": "https://{host}/v1",
+      "description": "The back end; the host is set in the Nuxt server's config",
+      "variables": {
+        "host": {
+          "default": "api.example.com"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/timetable": {
+      "get": {
+        "operationId": "getTimetableByQuery",
+        "summary": "The timetable running on the searched day",
+        "description": "Called once per search, e.g. `GET /v1/timetable?originId=haworth&departingAfter=2026-10-12T14:30`. The query is exactly what the user searched (the same values as the page's address `/?from=haworth&date=2026-10-12&time=14:30`).",
+        "parameters": [
+          {
+            "name": "originId",
+            "in": "query",
+            "required": true,
+            "description": "The station the user leaves from.",
+            "schema": {
+              "$ref": "#/components/schemas/StationId"
+            },
+            "example": "haworth"
+          },
+          {
+            "name": "departingAfter",
+            "in": "query",
+            "required": true,
+            "description": "The searched day and earliest departure time, UK local time, no offset: `YYYY-MM-DDTHH:mm`. The date picks the timetable (rule 2); the time is the earliest departure from `originId` the user wants. It may be any day, past or future.",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d$"
+            },
+            "example": "2026-10-12T14:30"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The timetable for that day (possibly with no trains, rule 3).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableApiResponse"
+                },
+                "examples": {
+                  "trainsRunning": {
+                    "summary": "A day on the orange timetable (shortened: two services each way)",
+                    "value": {
+                      "timeTable": "orange",
+                      "stations": [
+                        { "id": "oxenhope", "name": "Oxenhope", "notes": [] },
+                        { "id": "haworth", "name": "Haworth", "notes": [] },
+                        { "id": "oakworth", "name": "Oakworth", "notes": [] },
+                        { "id": "damems", "name": "Damems", "notes": [] },
+                        { "id": "ingrow-west", "name": "Ingrow West", "notes": ["rail-story"] },
+                        { "id": "keighley", "name": "Keighley", "notes": ["national-rail-connection"] }
+                      ],
+                      "journeys": [
+                        {
+                          "from": "oxenhope",
+                          "to": "keighley",
+                          "services": [
+                            {
+                              "id": "orange-haworth-0922",
+                              "notes": ["diesel"],
+                              "calls": [
+                                { "stationId": "haworth", "time": "09:22", "timeType": "departure" },
+                                { "stationId": "oakworth", "time": "09:25", "timeType": "departure" },
+                                { "stationId": "damems", "time": "09:30", "timeType": "departure", "requestStop": true },
+                                { "stationId": "ingrow-west", "time": "09:33", "timeType": "departure" },
+                                { "stationId": "keighley", "time": "09:43", "timeType": "arrival" }
+                              ]
+                            },
+                            {
+                              "id": "orange-oxenhope-1015",
+                              "notes": ["steam", "bar"],
+                              "calls": [
+                                { "stationId": "oxenhope", "time": "10:15", "timeType": "departure" },
+                                { "stationId": "haworth", "time": "10:22", "timeType": "departure" },
+                                { "stationId": "oakworth", "time": "10:25", "timeType": "departure" },
+                                { "stationId": "damems", "time": "10:30", "timeType": "departure", "requestStop": true },
+                                { "stationId": "ingrow-west", "time": "10:33", "timeType": "departure" },
+                                { "stationId": "keighley", "time": "10:40", "timeType": "arrival" }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "from": "keighley",
+                          "to": "oxenhope",
+                          "services": [
+                            {
+                              "id": "orange-keighley-1605",
+                              "notes": ["steam"],
+                              "calls": [
+                                { "stationId": "keighley", "time": "16:05", "timeType": "departure" },
+                                { "stationId": "ingrow-west", "time": "16:12", "timeType": "departure" },
+                                { "stationId": "damems", "time": "16:15", "timeType": "departure", "requestStop": true },
+                                { "stationId": "oakworth", "time": "16:19", "timeType": "departure" },
+                                { "stationId": "haworth", "time": "16:29", "timeType": "departure" },
+                                { "stationId": "oxenhope", "time": "16:35", "timeType": "arrival" }
+                              ]
+                            },
+                            {
+                              "id": "orange-keighley-1650",
+                              "notes": ["diesel"],
+                              "calls": [
+                                { "stationId": "keighley", "time": "16:50", "timeType": "departure" },
+                                { "stationId": "ingrow-west", "time": "16:57", "timeType": "departure" },
+                                { "stationId": "damems", "time": "17:00", "timeType": "departure", "requestStop": true },
+                                { "stationId": "oakworth", "time": "17:04", "timeType": "departure" },
+                                { "stationId": "haworth", "time": "17:12", "timeType": "arrival" }
+                              ]
+                            }
+                          ]
+                        }
+                      ],
+                      "key": [
+                        { "code": "a", "description": "Arrival Time" },
+                        { "code": "d", "description": "Departure Time" },
+                        { "code": "x", "description": "Request Stop. Passengers wishing to board should inform station staff. Passengers wishing to alight must advise the Train Guard before the train leaves the previous station." },
+                        { "code": "national-rail-connection", "label": "National Rail connections", "description": "Connections with National Rail services to Leeds, Bradford, Skipton & beyond", "icon": "/images/timetable-key/national-rail.webp" },
+                        { "code": "rail-story", "label": "Rail Story museums at Ingrow", "description": "Alight at Ingrow for “Rail Story” museums & exhibitions.", "icon": "/images/timetable-key/rail-story.webp" },
+                        { "code": "bar", "label": "Real Ale Bar Car", "description": "This train includes a Real Ale Bar Car offering teas, coffees, soft drinks, real ales, wines and spirits, plus a tempting selection of snacks and confectionery.", "icon": "/images/timetable-key/bar.webp" },
+                        { "code": "steam", "label": "Steam train", "description": "Steam Train", "icon": "/images/timetable-key/steam.webp" },
+                        { "code": "diesel", "label": "Diesel train", "description": "Diesel Train", "icon": "/images/timetable-key/diesel.webp" },
+                        { "code": "last-train", "label": "Last train", "description": "Last train of the day from this station", "icon": "/images/timetable-key/last-train.webp" }
+                      ]
+                    }
+                  },
+                  "noTrainsThatDay": {
+                    "summary": "A day with no trains (rule 3): the front end shows its no-results state",
+                    "value": {
+                      "timeTable": "none",
+                      "stations": [
+                        { "id": "oxenhope", "name": "Oxenhope", "notes": [] },
+                        { "id": "haworth", "name": "Haworth", "notes": [] },
+                        { "id": "oakworth", "name": "Oakworth", "notes": [] },
+                        { "id": "damems", "name": "Damems", "notes": [] },
+                        { "id": "ingrow-west", "name": "Ingrow West", "notes": ["rail-story"] },
+                        { "id": "keighley", "name": "Keighley", "notes": ["national-rail-connection"] }
+                      ],
+                      "journeys": [],
+                      "key": [
+                        { "code": "a", "description": "Arrival Time" },
+                        { "code": "d", "description": "Departure Time" },
+                        { "code": "x", "description": "Request Stop. Passengers wishing to board should inform station staff. Passengers wishing to alight must advise the Train Guard before the train leaves the previous station." },
+                        { "code": "national-rail-connection", "label": "National Rail connections", "description": "Connections with National Rail services to Leeds, Bradford, Skipton & beyond", "icon": "/images/timetable-key/national-rail.webp" },
+                        { "code": "rail-story", "label": "Rail Story museums at Ingrow", "description": "Alight at Ingrow for “Rail Story” museums & exhibitions.", "icon": "/images/timetable-key/rail-story.webp" },
+                        { "code": "last-train", "label": "Last train", "description": "Last train of the day from this station", "icon": "/images/timetable-key/last-train.webp" }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The query doesn't hold up: a missing parameter, an unknown station, or a date or time that doesn't exist (e.g. `2026-02-30T10:00`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": "INVALID_QUERY",
+                    "message": "Unknown originId: \"howarth\""
+                  }
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "The back end failed (e.g. its data source is down). The front end shows its error state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": "TIMETABLE_UNAVAILABLE",
+                    "message": "Timetable data source unreachable"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "StationId": {
+        "type": "string",
+        "enum": ["keighley", "ingrow-west", "damems", "oakworth", "haworth", "oxenhope"]
+      },
+      "Time": {
+        "description": "UK local time of day, 24-hour, zero-padded `HH:mm` (rule 1).",
+        "type": "string",
+        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+        "examples": ["09:22", "16:50"]
+      },
+      "StationNoteCode": {
+        "description": "A symbol shown for a station.",
+        "type": "string",
+        "enum": ["rail-story", "national-rail-connection"]
+      },
+      "ServiceNoteCode": {
+        "description": "A symbol shown for a train. Never `last-train` (rule 7).",
+        "type": "string",
+        "enum": ["diesel", "steam", "bar"]
+      },
+      "TimetableApiResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["timeTable", "stations", "journeys", "key"],
+        "properties": {
+          "timeTable": {
+            "description": "The colour of the timetable running that day, lowercase (e.g. `orange`), or `none` when no trains run (rule 3). Informational only: the front end doesn't show it.",
+            "type": "string",
+            "pattern": "^[a-z]+(-[a-z]+)*$",
+            "examples": ["orange", "none"]
+          },
+          "stations": {
+            "description": "Every station on the line (rule 5), each once.",
+            "type": "array",
+            "minItems": 6,
+            "maxItems": 6,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/TimetableApiStation"
+            }
+          },
+          "journeys": {
+            "description": "At most one per way down the line (rule 10). Empty when no trains run that day (rule 3).",
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "$ref": "#/components/schemas/TimetableApiJourney"
+            }
+          },
+          "key": {
+            "description": "The timetable's key: every code used in the response, plus `a`, `d`, `x` and `last-train` (rules 6–8), each once.",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/TimetableApiKeyEntry"
+            },
+            "allOf": [
+              { "contains": { "type": "object", "properties": { "code": { "const": "a" } }, "required": ["code"] } },
+              { "contains": { "type": "object", "properties": { "code": { "const": "d" } }, "required": ["code"] } },
+              { "contains": { "type": "object", "properties": { "code": { "const": "x" } }, "required": ["code"] } },
+              { "contains": { "type": "object", "properties": { "code": { "const": "last-train" } }, "required": ["code"] } }
+            ]
+          }
+        }
+      },
+      "TimetableApiStation": {
+        "description": "A station on the line. `name` exactly as in the Stations table above.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "notes"],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/StationId"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "examples": ["Ingrow West"]
+          },
+          "notes": {
+            "description": "The station's symbols (e.g. `rail-story` at Ingrow West, `national-rail-connection` at Keighley); `[]` when none.",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/StationNoteCode"
+            }
+          }
+        }
+      },
+      "TimetableApiJourney": {
+        "description": "Every train running one way down the line (rule 10).",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "services"],
+        "properties": {
+          "from": {
+            "description": "The line end this way starts from: `oxenhope` or `keighley`.",
+            "type": "string",
+            "enum": ["oxenhope", "keighley"]
+          },
+          "to": {
+            "description": "The other line end.",
+            "type": "string",
+            "enum": ["oxenhope", "keighley"]
+          },
+          "services": {
+            "description": "Ordered by first departure; may be empty.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimetableApiService"
+            }
+          }
+        }
+      },
+      "TimetableApiService": {
+        "description": "One train, with all its stops (rules 4 and 9).",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "notes", "calls"],
+        "properties": {
+          "id": {
+            "description": "Unique and stable (rule 9), e.g. `<timetable>-<first station>-<HHmm>`.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "examples": ["orange-oxenhope-1015"]
+          },
+          "notes": {
+            "description": "The train's symbols, in the order to show them (e.g. `steam` then `bar`); `[]` when none.",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/ServiceNoteCode"
+            }
+          },
+          "calls": {
+            "description": "In running order, first stop to last: a departure first, an arrival last, departures in between (rule 4).",
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 6,
+            "items": {
+              "$ref": "#/components/schemas/TimetableApiCall"
+            }
+          }
+        }
+      },
+      "TimetableApiCall": {
+        "description": "One stop of a train, as the printed timetable's `d` / `a` columns say.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stationId", "time", "timeType"],
+        "properties": {
+          "stationId": {
+            "$ref": "#/components/schemas/StationId"
+          },
+          "time": {
+            "$ref": "#/components/schemas/Time"
+          },
+          "timeType": {
+            "description": "`arrival` on the last call only; `departure` on every other.",
+            "type": "string",
+            "enum": ["departure", "arrival"]
+          },
+          "requestStop": {
+            "description": "`true` when the train only stops if asked (the key's `x`, e.g. Damems). Omit it (or send `false`) otherwise.",
+            "type": "boolean"
+          }
+        }
+      },
+      "TimetableApiKeyEntry": {
+        "description": "One line of the key: a letter (no label, no icon) or a symbol (label and icon required).",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/TimetableApiKeyLetter"
+          },
+          {
+            "$ref": "#/components/schemas/TimetableApiKeySymbol"
+          }
+        ]
+      },
+      "TimetableApiKeyLetter": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "description"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": ["a", "d", "x"]
+          },
+          "description": {
+            "description": "Shown as-is; for `x`, next to every request stop.",
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "TimetableApiKeySymbol": {
+        "description": "Each code has one fixed icon path (see the Symbol codes and icons table).",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "label", "description", "icon"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": ["diesel", "steam", "bar", "rail-story", "national-rail-connection", "last-train"]
+          },
+          "label": {
+            "description": "Short: the icon's alt text and tooltip, e.g. \"Diesel train\".",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "description": {
+            "description": "The full wording, shown in the key under the results.",
+            "type": "string",
+            "minLength": 1
+          },
+          "icon": {
+            "description": "Path of a file the front end ships under /public.",
+            "type": "string",
+            "enum": [
+              "/images/timetable-key/diesel.webp",
+              "/images/timetable-key/steam.webp",
+              "/images/timetable-key/bar.webp",
+              "/images/timetable-key/rail-story.webp",
+              "/images/timetable-key/national-rail.webp",
+              "/images/timetable-key/last-train.webp"
+            ]
+          }
+        },
+        "allOf": [
+          { "if": { "properties": { "code": { "const": "diesel" } } }, "then": { "properties": { "icon": { "const": "/images/timetable-key/diesel.webp" } } } },
+          { "if": { "properties": { "code": { "const": "steam" } } }, "then": { "properties": { "icon": { "const": "/images/timetable-key/steam.webp" } } } },
+          { "if": { "properties": { "code": { "const": "bar" } } }, "then": { "properties": { "icon": { "const": "/images/timetable-key/bar.webp" } } } },
+          { "if": { "properties": { "code": { "const": "rail-story" } } }, "then": { "properties": { "icon": { "const": "/images/timetable-key/rail-story.webp" } } } },
+          { "if": { "properties": { "code": { "const": "national-rail-connection" } } }, "then": { "properties": { "icon": { "const": "/images/timetable-key/national-rail.webp" } } } },
+          { "if": { "properties": { "code": { "const": "last-train" } } }, "then": { "properties": { "icon": { "const": "/images/timetable-key/last-train.webp" } } } }
+        ]
+      },
+      "Error": {
+        "description": "Body of every non-2xx answer. Logged on the Nuxt server only, never shown to users.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "examples": ["INVALID_QUERY", "TIMETABLE_UNAVAILABLE"]
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

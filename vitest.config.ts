@@ -7,7 +7,7 @@ export default defineVitestConfig({
       nuxt: {
         domEnvironment: 'happy-dom',
       },
-      // Tests never hit the network: an iframe (e.g. StationInfo's Google map) stays empty
+      // Tests never hit the network: an iframe (e.g. StationInfo's OpenStreetMap map) stays empty
       // instead of loading its page once it's in the document (as vitest-axe puts it)
       happyDom: {
         settings: { disableIframePageLoading: true },

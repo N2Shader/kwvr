@@ -1,11 +1,25 @@
 import type { StationMapLocation } from '~/types/timetable'
 
-// Google Maps addresses for a station's location: StationInfo's map and link, and the Markdown for agents.
+// OpenStreetMap addresses for a station's location: StationInfo's map and link, and the Markdown for agents.
 
-/** Google's key-free embed (the project has no Maps API key), pinned on the station */
-export const getMapEmbedSrcByLocation = ({ latitude, longitude }: StationMapLocation) =>
-  `https://maps.google.com/maps?q=${latitude},${longitude}&z=15&hl=en-GB&output=embed`
+// Half the embed's box around the station, in degrees: about 800m by 550m, the streets round the station
+const MAP_EMBED_HALF_WIDTH_DEGREES = 0.006
+const MAP_EMBED_HALF_HEIGHT_DEGREES = 0.0025
 
-/** The same place on Google Maps itself, in its documented link format */
+// Four decimals, like the locations themselves, so floating-point noise never reaches the URL
+const roundCoordinate = (coordinate: number) => Number(coordinate.toFixed(4))
+
+/** OpenStreetMap's embed (no key needed): the box around the station, with a marker on it */
+export const getMapEmbedSrcByLocation = ({ latitude, longitude }: StationMapLocation) => {
+  const mapEmbedBox = [
+    longitude - MAP_EMBED_HALF_WIDTH_DEGREES,
+    latitude - MAP_EMBED_HALF_HEIGHT_DEGREES,
+    longitude + MAP_EMBED_HALF_WIDTH_DEGREES,
+    latitude + MAP_EMBED_HALF_HEIGHT_DEGREES,
+  ].map(roundCoordinate).join(',')
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${mapEmbedBox}&layer=mapnik&marker=${latitude},${longitude}`
+}
+
+/** The same place on openstreetmap.org itself, with a marker on the station */
 export const getMapLinkHrefByLocation = ({ latitude, longitude }: StationMapLocation) =>
-  `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+  `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}`

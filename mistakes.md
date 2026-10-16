@@ -63,3 +63,6 @@ Mistakes in reasoning or approach, so they aren't repeated.
 - Removed the temp folder holding the logo's 4096px original and the icon script right after writing in CLAUDE.md that they were "kept outside the repo". Corrected CLAUDE.md to point at the original in git history (inside the old `logo.svg`). Don't describe a temp file as kept: either keep it somewhere durable or say where to get it again.
 - In the (reverted) table-per-destination work, a spec's first draft built a row with `{ ...servicesFixture[0]!, … }`, although the codebase has no non-null assertions (see 2026-10-11). Caught on a grep. Take test data from the fixtures with `filter`/`find` and optional chaining, never an index plus `!`.
 - When the last train was added (2026-10-10, prompt 25), "the last train" became the latest departure each way, so a search from a middle station tinted two rows. The user meant one: the last row. When a rule has more than one reading (per direction or overall), pick the one that fits what the user sees (one table, one "last" row), or ask.
+
+## 2026-10-16
+- Validating the API contract, my script checked the OpenAPI example objects (`{ summary, value }`) instead of their `value`, and the first run "failed". An OpenAPI `examples` map wraps each example: validate `example.value` (a singular `example` is the bare value).

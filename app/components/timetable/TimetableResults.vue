@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { TimetableSearchCriteria, TrainService } from '~/types/timetable'
+import type { TimetableSearchCriteria, TrainService, TrainServiceCall, TrainServiceNote } from '~/types/timetable'
 
 const props = defineProps<{
   services: TrainService[]
@@ -33,6 +33,33 @@ const resultTableMeta = {
     ].filter(Boolean).join(' '),
   },
 }
+
+/*
+ * A line end's symbols (National Rail connections at Keighley) sit beside its name in the origin or
+ * destination cell, not in Info; every other symbol stays in Info. The journey modal and the key still
+ * get the service's full `notes`.
+ */
+const LINE_END_STATION_IDS = ['keighley', 'oxenhope']
+
+interface ResultRowNotes {
+  originNotes: TrainServiceNote[]
+  infoNotes: TrainServiceNote[]
+  destinationNotes: TrainServiceNote[]
+}
+
+const getLineEndNotesByCall = (call: TrainServiceCall | undefined): TrainServiceNote[] =>
+  call && LINE_END_STATION_IDS.includes(call.station.id) ? call.notes : []
+
+// The calls run from the searched station to the last stop, so the first is the origin and the last the destination
+const getResultRowNotesByService = (service: TrainService): ResultRowNotes => {
+  const originNotes = getLineEndNotesByCall(service.calls[0])
+  const destinationNotes = getLineEndNotesByCall(service.calls.at(-1))
+  const lineEndNoteCodes = new Set([...originNotes, ...destinationNotes].map(note => note.code))
+  return { originNotes, infoNotes: service.notes.filter(note => !lineEndNoteCodes.has(note.code)), destinationNotes }
+}
+
+const resultRowNotesByServiceId = computed(() =>
+  new Map(props.services.map(service => [service.id, getResultRowNotesByService(service)])))
 
 const resultsSection = useTemplateRef<HTMLElement>('resultsSection')
 useResultRowsEntranceMotion(resultsSection)
@@ -93,19 +120,21 @@ useEventListener(resultsSection, 'click', (event: MouseEvent) => {
           <TimetableResultStationTime
             :station-name="row.original.origin.name"
             :date-time="row.original.departsAt"
+            :notes="resultRowNotesByServiceId.get(row.original.id)?.originNotes ?? []"
           />
         </template>
         <template #info-cell="{ row }">
           <TimetableResultInfo
             :stop-count="row.original.stopCount"
             :has-service-alert="row.original.hasServiceAlert"
-            :notes="row.original.notes"
+            :notes="resultRowNotesByServiceId.get(row.original.id)?.infoNotes ?? []"
           />
         </template>
         <template #destination-cell="{ row }">
           <TimetableResultStationTime
             :station-name="row.original.destination.name"
             :date-time="row.original.arrivesAt"
+            :notes="resultRowNotesByServiceId.get(row.original.id)?.destinationNotes ?? []"
           />
         </template>
       </UTable>

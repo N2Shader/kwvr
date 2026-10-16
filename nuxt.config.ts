@@ -10,7 +10,7 @@ const siteUrl = (process.env.NUXT_PUBLIC_SITE_URL || process.env.URL || 'http://
  * on Netlify, copies them into dist/_headers for the static files, so one list covers every response.
  * The CSP is report-only for now: check the browser console on a deploy preview for violations, then
  * rename it to Content-Security-Policy. 'unsafe-inline' scripts: Nuxt's inline config script (a hash
- * changes with every build); frame-src: the station map (Google Maps, click to load).
+ * changes with every build); frame-src: the station map (OpenStreetMap, click to load; its tiles load inside the frame, under OSM's own policy).
  */
 const securityHeaders = {
   'strict-transport-security': 'max-age=31536000; includeSubDomains',
@@ -25,7 +25,7 @@ const securityHeaders = {
     'img-src \'self\' data: blob:',
     'font-src \'self\'',
     'connect-src \'self\'',
-    'frame-src https://maps.google.com https://www.google.com',
+    'frame-src https://www.openstreetmap.org',
     'object-src \'none\'',
     'base-uri \'self\'',
     'form-action \'self\'',

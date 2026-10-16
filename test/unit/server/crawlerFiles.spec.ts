@@ -47,7 +47,7 @@ describe('buildHomeMarkdown', () => {
   it('describes each station, with its map and its page on kwvr.co.uk', () => {
     expect(homeMarkdown).toContain('### Haworth')
     expect(homeMarkdown).toContain('Brontë Parsonage Museum')
-    expect(homeMarkdown).toContain('- Map: https://www.google.com/maps/search/?api=1&query=53.8312,-1.9488')
+    expect(homeMarkdown).toContain('- Map: https://www.openstreetmap.org/?mlat=53.8312&mlon=-1.9488#map=16/53.8312/-1.9488')
     expect(homeMarkdown).toContain('- More on kwvr.co.uk: https://kwvr.co.uk/visiting-the-kwvr/stations/haworth-station/')
   })
 

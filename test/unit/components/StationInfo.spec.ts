@@ -43,16 +43,16 @@ describe('StationInfo', () => {
     expect(wrapper.find('ul').exists()).toBe(false)
   })
 
-  it('doesn\'t load Google\'s map until asked: a button and a link to Google Maps instead', async () => {
+  it('doesn\'t load the map until asked: a button and a link to OpenStreetMap instead', async () => {
     const wrapper = await mountStationInfo('haworth')
 
     expect(wrapper.find('iframe').exists()).toBe(false)
-    expect(wrapper.get('.station-map-placeholder p').text()).toBe('The map comes from Google Maps, which may set cookies.')
+    expect(wrapper.get('.station-map-placeholder p').text()).toBe('The map comes from OpenStreetMap, an outside site.')
     expect(wrapper.get('.station-map-placeholder button').text()).toBe('Show map of Haworth station')
 
     const mapLink = wrapper.get('a.station-map-link')
-    expect(mapLink.text()).toBe('Open in Google Maps (opens in a new tab)')
-    expect(mapLink.attributes('href')).toBe('https://www.google.com/maps/search/?api=1&query=53.8312,-1.9488')
+    expect(mapLink.text()).toBe('Open in OpenStreetMap (opens in a new tab)')
+    expect(mapLink.attributes('href')).toBe('https://www.openstreetmap.org/?mlat=53.8312&mlon=-1.9488#map=16/53.8312/-1.9488')
     expect(mapLink.attributes('target')).toBe('_blank')
     expect(mapLink.attributes('rel')).toBe('noopener noreferrer')
   })
@@ -65,8 +65,8 @@ describe('StationInfo', () => {
 
     const stationMap = wrapper.get('iframe')
     expect(stationMap.attributes('title')).toBe('Map of Haworth station')
-    expect(stationMap.attributes('src')).toBe('https://maps.google.com/maps?q=53.8312,-1.9488&z=15&hl=en-GB&output=embed')
-    // Our origin only: the search in the address bar never reaches Google
+    expect(stationMap.attributes('src')).toBe('https://www.openstreetmap.org/export/embed.html?bbox=-1.9548,53.8287,-1.9428,53.8337&layer=mapnik&marker=53.8312,-1.9488')
+    // Our origin only: the search in the address bar never reaches OpenStreetMap
     expect(stationMap.attributes('referrerpolicy')).toBe('strict-origin-when-cross-origin')
     expect(wrapper.find('.station-map-placeholder').exists()).toBe(false)
     await vi.waitFor(() => expect(document.activeElement).toBe(stationMap.element))

@@ -5,14 +5,15 @@ const props = defineProps<{
   details: StationDetails
 }>()
 
-// Google's key-free embed, pinned on the station, and the same place on Google Maps itself, for anyone
-// who'd rather not load the map here (utils/stationMapLinks.ts)
+// OpenStreetMap's embed, with a marker on the station, and the same place on openstreetmap.org itself, for
+// anyone who'd rather not load the map here (utils/stationMapLinks.ts)
 const mapEmbedSrc = computed(() => getMapEmbedSrcByLocation(props.details.mapLocation))
 const mapLinkHref = computed(() => getMapLinkHrefByLocation(props.details.mapLocation))
 
 /*
- * Click to load: the map only loads (with Google's scripts and cookies) once asked for, so nothing reaches
- * Google without the user's say-so, and its weight never lands on a results page that doesn't need it.
+ * Click to load: the map only loads (its scripts and tiles, from openstreetmap.org) once asked for, so
+ * nothing reaches another site without the user's say-so, its weight never lands on a results page that
+ * doesn't need it, and OpenStreetMap's tile servers only serve maps someone looks at.
  * Focus then moves into the map, as the button it replaces is gone.
  */
 const isMapShown = ref(false)
@@ -51,7 +52,7 @@ const showStationMap = async () => {
     </div>
     <!--
       The section's only focusable things are in here, so moving it with `order` keeps the focus order.
-      Referrer: our origin only, so the search in our address bar never reaches Google.
+      Referrer: our origin only, so the search in our address bar never reaches OpenStreetMap.
     -->
     <div class="station-map">
       <iframe
@@ -66,7 +67,7 @@ const showStationMap = async () => {
         v-else
         class="station-map-placeholder"
       >
-        <p>The map comes from Google Maps, which may set cookies.</p>
+        <p>The map comes from OpenStreetMap, an outside site.</p>
         <UButton
           class="button-primary"
           @click="showStationMap"
@@ -78,7 +79,7 @@ const showStationMap = async () => {
           target="_blank"
           rel="noopener noreferrer"
           class="station-map-link"
-        >Open in Google Maps<span class="visually-hidden"> (opens in a new tab)</span></a>
+        >Open in OpenStreetMap<span class="visually-hidden"> (opens in a new tab)</span></a>
       </div>
     </div>
   </UContainer>

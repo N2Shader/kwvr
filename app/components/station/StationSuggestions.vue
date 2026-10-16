@@ -11,8 +11,7 @@ defineProps<{
     as="section"
     class="station-suggestions"
   >
-    <!-- The design has no visible heading here; this one names the section for screen readers -->
-    <h2 class="visually-hidden">
+    <h2 class="station-suggestions-heading">
       More stations to explore
     </h2>
     <ul class="station-suggestion-list">
@@ -28,6 +27,13 @@ defineProps<{
 <style scoped>
 .station-suggestions {
   padding-block: var(--space-6) var(--space-8);
+}
+
+/* Small (the Key's size, not a full h2) and centred over the centred cards: a short snippet */
+.station-suggestions-heading {
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-lg);
+  text-align: center;
 }
 
 /* Mobile first: one centred column; three columns from tablet up (keep StationSuggestionCard's `sizes` in sync) */
